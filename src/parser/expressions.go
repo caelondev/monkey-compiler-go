@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/caelondev/monkey/src/ast"
-	"github.com/caelondev/monkey/src/token"
+	"github.com/caelondev/monkey-compiler-go/src/ast"
+	"github.com/caelondev/monkey-compiler-go/src/token"
 )
 
 func (p *Parser) parseExpression(precedence int) ast.Expression {

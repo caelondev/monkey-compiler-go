@@ -1,8 +1,8 @@
 package evaluation
 
 import (
-	"github.com/caelondev/monkey/src/ast"
-	"github.com/caelondev/monkey/src/object"
+	"github.com/caelondev/monkey-compiler-go/src/ast"
+	"github.com/caelondev/monkey-compiler-go/src/object"
 )
 
 func (e *Evaluator) evaluateBlockStatement(node *ast.BlockStatement, env *object.Environment) object.Object {

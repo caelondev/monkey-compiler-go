@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/caelondev/monkey/src/token"
+	"github.com/caelondev/monkey-compiler-go/src/token"
 )
 
 // ---------------- NumberLiteral ----------------

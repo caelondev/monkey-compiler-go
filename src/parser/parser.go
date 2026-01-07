@@ -3,9 +3,9 @@ package parser
 import (
 	"fmt"
 
-	"github.com/caelondev/monkey/src/ast"
-	"github.com/caelondev/monkey/src/lexer"
-	"github.com/caelondev/monkey/src/token"
+	"github.com/caelondev/monkey-compiler-go/src/ast"
+	"github.com/caelondev/monkey-compiler-go/src/lexer"
+	"github.com/caelondev/monkey-compiler-go/src/token"
 )
 
 type (

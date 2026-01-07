@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/caelondev/monkey/src/repl"
-	"github.com/caelondev/monkey/src/run"
+	"github.com/caelondev/monkey-compiler-go/src/repl"
+	"github.com/caelondev/monkey-compiler-go/src/run"
 )
 
 func Main() {

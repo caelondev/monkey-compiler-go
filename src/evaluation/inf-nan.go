@@ -3,8 +3,8 @@ package evaluation
 import (
 	"math"
 
-	"github.com/caelondev/monkey/src/object"
-	"github.com/caelondev/monkey/src/token"
+	"github.com/caelondev/monkey-compiler-go/src/object"
+	"github.com/caelondev/monkey-compiler-go/src/token"
 )
 
 // NOTE: This file only contains Infinity and NaN's semantics ---

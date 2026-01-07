@@ -3,9 +3,9 @@ package evaluation
 import (
 	"math"
 
-	"github.com/caelondev/monkey/src/ast"
-	"github.com/caelondev/monkey/src/object"
-	"github.com/caelondev/monkey/src/token"
+	"github.com/caelondev/monkey-compiler-go/src/ast"
+	"github.com/caelondev/monkey-compiler-go/src/object"
+	"github.com/caelondev/monkey-compiler-go/src/token"
 )
 
 func (e *Evaluator) evaluateIdentifier(node *ast.Identifier, env *object.Environment) object.Object {

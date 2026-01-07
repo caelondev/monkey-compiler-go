@@ -6,7 +6,7 @@ import (
 	"hash/fnv"
 	"strings"
 
-	"github.com/caelondev/monkey/src/ast"
+	"github.com/caelondev/monkey-compiler-go/src/ast"
 )
 
 type ObjectType string

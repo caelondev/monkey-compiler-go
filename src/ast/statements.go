@@ -3,7 +3,7 @@ package ast
 import (
 	"bytes"
 
-	"github.com/caelondev/monkey/src/token"
+	"github.com/caelondev/monkey-compiler-go/src/token"
 )
 
 // ---------------- VarStatement ----------------

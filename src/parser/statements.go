@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"github.com/caelondev/monkey/src/ast"
-	"github.com/caelondev/monkey/src/token"
+	"github.com/caelondev/monkey-compiler-go/src/ast"
+	"github.com/caelondev/monkey-compiler-go/src/token"
 )
 
 func (p *Parser) parseStatement() ast.Statement {

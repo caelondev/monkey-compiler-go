@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/caelondev/monkey/src/object"
-	"github.com/caelondev/monkey/src/run"
-	"github.com/jwalton/gchalk"
+	"github.com/caelondev/monkey-compiler-go/src/object"
+	"github.com/caelondev/monkey-compiler-go/src/run"
 )
 
 func Start(in io.Reader, out io.Writer) {
@@ -28,10 +27,10 @@ func Start(in io.Reader, out io.Writer) {
 
 		if result != nil {
 			if result.Type() == object.ERROR_OBJECT {
-				err := result.(*object.Error)
-				lineColumn := gchalk.WithBold().Red("Runtime::Error")
-				message := gchalk.Red(" -> " + err.Message + "\n")
-				io.WriteString(out, lineColumn+message)
+				// err := result.(*object.Error)
+				// lineColumn := gchalk.WithBold().Red("Runtime::Error")
+				// message := gchalk.Red(" -> " + err.Message + "\n")
+				// io.WriteString(out, lineColumn+message)
 			} else {
 				io.WriteString(out, result.Inspect())
 				io.WriteString(out, "\n")

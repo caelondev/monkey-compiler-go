@@ -1,6 +1,6 @@
 package parser
 
-import "github.com/caelondev/monkey/src/token"
+import "github.com/caelondev/monkey-compiler-go/src/token"
 
 const (
 	_ int = iota

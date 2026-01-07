@@ -3,8 +3,8 @@ package evaluation
 import (
 	"fmt"
 
-	"github.com/caelondev/monkey/src/ast"
-	"github.com/caelondev/monkey/src/object"
+	"github.com/caelondev/monkey-compiler-go/src/ast"
+	"github.com/caelondev/monkey-compiler-go/src/object"
 )
 
 func (e *Evaluator) evaluateToObjectBoolean(v bool) *object.Boolean {
