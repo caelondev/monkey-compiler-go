@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/caelondev/monkey-compiler-go/src/object"
+	"github.com/caelondev/monkey-compiler-go/src/compiler"
+	"github.com/caelondev/monkey-compiler-go/src/lexer"
+	"github.com/caelondev/monkey-compiler-go/src/parser"
 	"github.com/caelondev/monkey-compiler-go/src/run"
+	"github.com/caelondev/monkey-compiler-go/src/vm"
 )
 
 func Start(in io.Reader, out io.Writer) {
@@ -23,18 +26,33 @@ func Start(in io.Reader, out io.Writer) {
 		line := scanner.Text()
 		allLines = append(allLines, line)
 
-		result := run.RunSource(line, out)
+		l := lexer.New(line)
+		p := parser.New(l)
 
-		if result != nil {
-			if result.Type() == object.ERROR_OBJECT {
-				// err := result.(*object.Error)
-				// lineColumn := gchalk.WithBold().Red("Runtime::Error")
-				// message := gchalk.Red(" -> " + err.Message + "\n")
-				// io.WriteString(out, lineColumn+message)
-			} else {
-				io.WriteString(out, result.Inspect())
-				io.WriteString(out, "\n")
-			}
+		program := p.ParseProgram()
+		if len(p.Errors()) != 0 {
+			run.PrintParserErrors(out, p.Errors())
+			continue
 		}
+
+		comp := compiler.New()
+		err := comp.Compile(program)
+		if err != nil {
+			fmt.Fprintf(out, "Compiler::Error: %s\n", err)
+			continue
+		}
+
+		comp.Disassemble()
+
+		vm := vm.New(comp.Bytecode())
+		err = vm.Run()
+		if err != nil {
+			fmt.Fprintf(out, "VM::Error: %s\n", err)
+			continue
+		}
+
+		stackTop := vm.LastPoppedElement()
+		io.WriteString(out, stackTop.Inspect())
+		io.WriteString(out, "\n")
 	}
 }

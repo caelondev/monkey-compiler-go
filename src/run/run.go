@@ -43,7 +43,7 @@ func RunSource(source string, out io.Writer) object.Object {
 
 	if len(p.Errors()) != 0 {
 		io.WriteString(out, "An error occured whilst parsing:\n")
-		printParserErrors(out, p.Errors())
+		PrintParserErrors(out, p.Errors())
 		io.WriteString(out, "\n")
 		return nil
 	}
@@ -90,7 +90,7 @@ func RunSource(source string, out io.Writer) object.Object {
 // 	io.WriteString(out, lineColumn+message+snippet)
 // }
 
-func printParserErrors(out io.Writer, errors []string) {
+func PrintParserErrors(out io.Writer, errors []string) {
 	for _, msg := range errors {
 		io.WriteString(out, "\t"+msg+"\n")
 	}

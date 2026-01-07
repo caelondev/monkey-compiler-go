@@ -2,11 +2,14 @@ package vm
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/caelondev/monkey-compiler-go/src/code"
 	"github.com/caelondev/monkey-compiler-go/src/compiler"
 	"github.com/caelondev/monkey-compiler-go/src/object"
 )
+
+const STACK_SIZE = 2048
 
 type VM struct {
 	instructions code.Instructions
@@ -15,8 +18,6 @@ type VM struct {
 	stack        []object.Object
 	stackPointer int
 }
-
-const STACK_SIZE = 2048
 
 func New(bytecode *compiler.Bytecode) *VM {
 	return &VM{
@@ -42,6 +43,14 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpExponent:
+			right := vm.pop()
+			left := vm.pop()
+			rightVal := right.(*object.Number).Value
+			leftVal := left.(*object.Number).Value
+
+			total := &object.Number{Value: math.Pow(leftVal, rightVal)}
+			vm.push(total)
 		case code.OpAdd:
 			right := vm.pop()
 			left := vm.pop()
@@ -50,8 +59,45 @@ func (vm *VM) Run() error {
 
 			total := &object.Number{Value: leftVal + rightVal}
 			vm.push(total)
+		case code.OpSubtract:
+			right := vm.pop()
+			left := vm.pop()
+			rightVal := right.(*object.Number).Value
+			leftVal := left.(*object.Number).Value
 
-			fmt.Print(total.Value)
+			total := &object.Number{Value: leftVal - rightVal}
+			vm.push(total)
+		case code.OpMultiply:
+			right := vm.pop()
+			left := vm.pop()
+			rightVal := right.(*object.Number).Value
+			leftVal := left.(*object.Number).Value
+
+			total := &object.Number{Value: leftVal * rightVal}
+			vm.push(total)
+		case code.OpDivide:
+			right := vm.pop()
+			left := vm.pop()
+			rightVal := right.(*object.Number).Value
+			leftVal := left.(*object.Number).Value
+
+			total := &object.Number{Value: leftVal / rightVal}
+			vm.push(total)
+
+		case code.OpTrue:
+			err := vm.push(object.TRUE)
+			if err != nil {
+				return err
+			}
+
+		case code.OpFalse:
+			err := vm.push(object.FALSE)
+			if err != nil {
+				return err
+			}
+
+		case code.OpPop:
+			vm.pop()
 		}
 	}
 
@@ -80,4 +126,8 @@ func (vm *VM) pop() object.Object {
 	obj := vm.stack[vm.stackPointer-1]
 	vm.stackPointer--
 	return obj
+}
+
+func (vm *VM) LastPoppedElement() object.Object {
+	return vm.stack[vm.stackPointer]
 }

@@ -42,6 +42,19 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
+		c.emit(code.OpPop)
+
+	case *ast.BooleanExpression:
+		var bool code.OpCode
+
+		if node.Value {
+			bool = code.OpTrue
+		} else {
+			bool = code.OpFalse
+		}
+
+		c.emit(bool)
+
 	case *ast.BinaryExpression:
 		leftErr := c.Compile(node.Left)
 		if leftErr != nil {
@@ -54,8 +67,17 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		switch node.Operator.Type {
+		case token.CARET:
+			c.emit(code.OpExponent)
 		case token.PLUS:
 			c.emit(code.OpAdd)
+		case token.MINUS:
+			c.emit(code.OpSubtract)
+		case token.STAR:
+			c.emit(code.OpMultiply)
+		case token.SLASH:
+			c.emit(code.OpDivide)
+
 		default:
 			return fmt.Errorf("Unknown binary operator token: '%s'", node.Operator.Type)
 		}
@@ -66,6 +88,39 @@ func (c *Compiler) Compile(node ast.Node) error {
 	}
 
 	return nil // Default
+}
+
+func (c *Compiler) Disassemble() {
+	bytecode := c.Bytecode()
+
+	fmt.Println("== Disassembly ==")
+	instructions := bytecode.Instructions
+	i := 0
+	for i < len(instructions) {
+		op := code.OpCode(instructions[i])
+		def, err := code.Lookup(op)
+		if err != nil {
+			fmt.Printf("Unknown opcode %d\n", op)
+			i++
+			continue
+		}
+		fmt.Printf("%04d %s", i, def.Name)
+		i++
+		operands := make([]int, len(def.OperandWidths))
+		for j, width := range def.OperandWidths {
+			switch width {
+			case 2:
+				operands[j] = int(code.ReadUint16(instructions[i:]))
+				i += 2
+			default:
+				panic("Unsupported operand width")
+			}
+		}
+		if len(operands) > 0 {
+			fmt.Printf(" %v", operands)
+		}
+		fmt.Println()
+	}
 }
 
 func (c *Compiler) emit(opcode code.OpCode, operands ...int) int {
