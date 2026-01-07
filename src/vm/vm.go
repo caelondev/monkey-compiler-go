@@ -84,6 +84,12 @@ func (vm *VM) Run() error {
 			total := &object.Number{Value: leftVal / rightVal}
 			vm.push(total)
 
+		case code.OpEqual, code.OpNotEqual, code.OpLess, code.OpLessEqual, code.OpGreater, code.OpGreaterEqual:
+			err := vm.executeComparison(op)
+			if err != nil {
+				return err
+			}
+
 		case code.OpTrue:
 			err := vm.push(object.TRUE)
 			if err != nil {

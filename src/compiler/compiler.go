@@ -78,6 +78,19 @@ func (c *Compiler) Compile(node ast.Node) error {
 		case token.SLASH:
 			c.emit(code.OpDivide)
 
+		case token.EQUAL:
+			c.emit(code.OpEqual)
+		case token.NOT_EQUAL:
+			c.emit(code.OpNotEqual)
+		case token.LESS:
+			c.emit(code.OpLess)
+		case token.GREATER:
+			c.emit(code.OpGreater)
+		case token.LESS_EQUAL:
+			c.emit(code.OpLessEqual)
+		case token.GREATER_EQUAL:
+			c.emit(code.OpGreaterEqual)
+
 		default:
 			return fmt.Errorf("Unknown binary operator token: '%s'", node.Operator.Type)
 		}

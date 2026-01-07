@@ -19,6 +19,14 @@ const (
 	OpMultiply
 	OpDivide
 	OpExponent
+
+	OpEqual
+	OpNotEqual
+	OpGreater
+	OpGreaterEqual
+	OpLess
+	OpLessEqual
+
 	OpPop
 )
 
@@ -28,15 +36,21 @@ type Definition struct {
 }
 
 var definitions = map[OpCode]*Definition{
-	OpConstant: {"OpConstant", []int{2}},
-	OpAdd:      {"OpAdd", []int{}},
-	OpFalse:    {"OpFalse", []int{}},
-	OpTrue:     {"OpTrue", []int{}},
-	OpPop:      {"OpPop", []int{}},
-	OpSubtract: {"OpSubtract", []int{}},
-	OpMultiply: {"OpMultiply", []int{}},
-	OpDivide:   {"OpDivide", []int{}},
-	OpExponent: {"OpExponent", []int{}},
+	OpConstant:     {"OpConstant", []int{2}},
+	OpAdd:          {"OpAdd", []int{}},
+	OpFalse:        {"OpFalse", []int{}},
+	OpTrue:         {"OpTrue", []int{}},
+	OpEqual:        {"OpEqual", []int{}},
+	OpNotEqual:     {"OpNotEqual", []int{}},
+	OpGreater:      {"OpGreater", []int{}},
+	OpGreaterEqual: {"OpGreaterEqual", []int{}},
+	OpLess:         {"OpLess", []int{}},
+	OpLessEqual:    {"OpLessEqual", []int{}},
+	OpPop:          {"OpPop", []int{}},
+	OpSubtract:     {"OpSubtract", []int{}},
+	OpMultiply:     {"OpMultiply", []int{}},
+	OpDivide:       {"OpDivide", []int{}},
+	OpExponent:     {"OpExponent", []int{}},
 }
 
 func Lookup(opcode OpCode) (*Definition, error) {
