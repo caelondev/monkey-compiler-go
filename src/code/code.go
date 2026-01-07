@@ -27,6 +27,9 @@ const (
 	OpLess
 	OpLessEqual
 
+	OpNegate
+	OpNot
+
 	OpPop
 )
 
@@ -42,15 +45,17 @@ var definitions = map[OpCode]*Definition{
 	OpTrue:         {"OpTrue", []int{}},
 	OpEqual:        {"OpEqual", []int{}},
 	OpNotEqual:     {"OpNotEqual", []int{}},
+	OpNegate:       {"OpNegate", []int{}},
+	OpNot:          {"OpNot", []int{}},
 	OpGreater:      {"OpGreater", []int{}},
 	OpGreaterEqual: {"OpGreaterEqual", []int{}},
 	OpLess:         {"OpLess", []int{}},
 	OpLessEqual:    {"OpLessEqual", []int{}},
-	OpPop:          {"OpPop", []int{}},
 	OpSubtract:     {"OpSubtract", []int{}},
 	OpMultiply:     {"OpMultiply", []int{}},
 	OpDivide:       {"OpDivide", []int{}},
 	OpExponent:     {"OpExponent", []int{}},
+	OpPop:          {"OpPop", []int{}},
 }
 
 func Lookup(opcode OpCode) (*Definition, error) {

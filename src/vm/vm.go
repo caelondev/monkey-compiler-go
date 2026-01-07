@@ -102,6 +102,28 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpNegate:
+			prev := vm.stack[vm.stackPointer-1]
+			num, ok := prev.(*object.Number)
+			if !ok {
+				return fmt.Errorf("Cannot negate non-numeric value type '%s'\n", prev.Type())
+			}
+
+			vm.stack[vm.stackPointer-1] = &object.Number{Value: -num.Value}
+
+		case code.OpNot:
+			prev := vm.stack[vm.stackPointer-1]
+			var boolObj *object.Boolean
+
+			// Flip value
+			if isTruthy(prev) {
+				boolObj = object.FALSE
+			} else {
+				boolObj = object.TRUE
+			}
+
+			vm.stack[vm.stackPointer-1] = boolObj
+
 		case code.OpPop:
 			vm.pop()
 		}

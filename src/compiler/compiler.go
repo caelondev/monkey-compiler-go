@@ -98,6 +98,21 @@ func (c *Compiler) Compile(node ast.Node) error {
 	case *ast.NumberLiteral:
 		num := &object.Number{Value: node.Value}
 		c.emit(code.OpConstant, c.addConstant(num))
+
+	case *ast.UnaryExpression:
+		err := c.Compile(node.Right)
+		if err != nil {
+			return err
+		}
+
+		switch node.Operator.Type {
+		case token.NOT:
+			c.emit(code.OpNot)
+		case token.MINUS:
+			c.emit(code.OpNegate)
+		default:
+			return fmt.Errorf("Unknown unary operator token: '%s'", node.Operator.Type)
+		}
 	}
 
 	return nil // Default
