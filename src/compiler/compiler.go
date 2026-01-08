@@ -66,6 +66,9 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		c.emit(bool)
 
+	case *ast.NilLiteral:
+		c.emit(code.OpNil)
+
 	case *ast.BinaryExpression:
 		leftErr := c.Compile(node.Left)
 		if leftErr != nil {

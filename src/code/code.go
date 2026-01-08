@@ -13,6 +13,7 @@ const (
 	OpConstant OpCode = iota
 	OpTrue
 	OpFalse
+	OpNil
 
 	OpAdd
 	OpSubtract
@@ -46,6 +47,7 @@ var definitions = map[OpCode]*Definition{
 	OpJump:          {"OpJump", []int{2}},
 	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
 	OpAdd:           {"OpAdd", []int{}},
+	OpNil:           {"OpNil", []int{}},
 	OpFalse:         {"OpFalse", []int{}},
 	OpTrue:          {"OpTrue", []int{}},
 	OpEqual:         {"OpEqual", []int{}},

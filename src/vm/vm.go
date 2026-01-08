@@ -136,6 +136,13 @@ func (vm *VM) Run() error {
 				instPointer = pos - 1
 			}
 
+		case code.OpNil:
+			err := vm.push(object.NIL)
+			if err != nil {
+				return err
+			}
+
+
 		case code.OpPop:
 			vm.pop()
 		}
