@@ -7,6 +7,7 @@ import (
 
 	"github.com/caelondev/monkey-compiler-go/src/compiler"
 	"github.com/caelondev/monkey-compiler-go/src/lexer"
+	"github.com/caelondev/monkey-compiler-go/src/object"
 	"github.com/caelondev/monkey-compiler-go/src/parser"
 	"github.com/caelondev/monkey-compiler-go/src/run"
 	"github.com/caelondev/monkey-compiler-go/src/vm"
@@ -15,6 +16,10 @@ import (
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	var allLines []string
+
+	constants := make([]object.Object, 0)
+	globals := make([]object.Object, vm.GLOBAL_SIZE)
+	symbolTable := compiler.NewSymbolTable()
 
 	for {
 		fmt.Printf(">> ")
@@ -35,7 +40,7 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		comp := compiler.New()
+		comp := compiler.NewWithState(symbolTable, constants)
 		err := comp.Compile(program)
 		if err != nil {
 			fmt.Fprintf(out, "Compiler::Error: %s\n", err)
@@ -44,7 +49,7 @@ func Start(in io.Reader, out io.Writer) {
 
 		comp.Disassemble()
 
-		vm := vm.New(comp.Bytecode())
+		vm := vm.NewWithGlobalStore(comp.Bytecode(), globals)
 		err = vm.Run()
 		if err != nil {
 			fmt.Fprintf(out, "VM::Error: %s\n", err)

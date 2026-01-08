@@ -10,12 +10,14 @@ import (
 )
 
 const STACK_SIZE = 2048
+const GLOBAL_SIZE = 65536
 
 type VM struct {
 	instructions code.Instructions
 	constants    []object.Object
 
 	stack        []object.Object
+	globals      []object.Object
 	stackPointer int
 }
 
@@ -25,8 +27,15 @@ func New(bytecode *compiler.Bytecode) *VM {
 		constants:    bytecode.Constants,
 
 		stack:        make([]object.Object, STACK_SIZE),
+		globals:      make([]object.Object, GLOBAL_SIZE),
 		stackPointer: 0,
 	}
+}
+
+func NewWithGlobalStore(bytecode *compiler.Bytecode, global []object.Object) *VM {
+	vm := New(bytecode)
+	vm.globals = global
+	return vm
 }
 
 func (vm *VM) Run() error {
@@ -142,6 +151,20 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpSetGlobal:
+			globalIndex := code.ReadUint16(vm.instructions[instPointer+1:])
+			instPointer += 2
+
+			vm.globals[globalIndex] = vm.pop()
+
+		case code.OpGetGlobal:
+			globalIndex := code.ReadUint16(vm.instructions[instPointer+1:])
+			instPointer += 2
+
+			err := vm.push(vm.globals[globalIndex])
+			if err != nil {
+				return err
+			}
 
 		case code.OpPop:
 			vm.pop()

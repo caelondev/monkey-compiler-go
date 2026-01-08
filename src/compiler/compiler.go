@@ -17,6 +17,7 @@ type EmittedInstruction struct {
 type Compiler struct {
 	instructions code.Instructions // []byte
 	constants    []object.Object
+	symbolTable  *SymbolTable
 
 	lastInstruction     EmittedInstruction
 	previousInstruction EmittedInstruction
@@ -31,10 +32,18 @@ func New() *Compiler {
 	return &Compiler{
 		instructions: make(code.Instructions, 0),
 		constants:    make([]object.Object, 0),
+		symbolTable:  NewSymbolTable(),
 
 		lastInstruction:     EmittedInstruction{},
 		previousInstruction: EmittedInstruction{},
 	}
+}
+
+func NewWithState(table *SymbolTable, constants []object.Object) *Compiler {
+	compiler := New()
+	compiler.symbolTable = table
+	compiler.constants = constants
+	return compiler
 }
 
 func (c *Compiler) Compile(node ast.Node) error {
@@ -202,7 +211,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		// Set end of jumpNotTruthyPos to "jump pos"
 		// But we're not directly using jumpPos
 		c.changeOperand(jumpNotTruthyPos, posAfterConsequence)
-	
+
 		err = c.Compile(node.Alternative)
 		if err != nil {
 			return err
@@ -214,6 +223,33 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		posAfterAlternative := len(c.instructions)
 		c.changeOperand(jumpPos, posAfterAlternative)
+
+	case *ast.VarStatement:
+		for _, name := range node.Names {
+			// TODO: This operation is lowkey expensive
+			// maybe optimize this? this probably doesnt affect the
+			// runtime that much, but its better to point this one out
+			// ... Maybe recompiling is the only option???
+			err := c.Compile(node.Value)
+			if err != nil {
+				return err
+			}
+
+			symbol, error := c.symbolTable.Define(name.Value)
+			if error {
+				return fmt.Errorf("Cannot redeclare already existing variable '%s'", name.Value)
+			}
+
+			c.emit(code.OpSetGlobal, symbol.Index)
+		}
+
+	case *ast.Identifier:
+		symbol, exists := c.symbolTable.Resolve(node.Value)
+		if !exists {
+			return fmt.Errorf("Cannot resolve variable '%s'", node.Value)
+		}
+
+		c.emit(code.OpGetGlobal, symbol.Index)
 	}
 
 	return nil // Default
@@ -250,6 +286,7 @@ func (c *Compiler) Disassemble() {
 		}
 		fmt.Println()
 	}
+	fmt.Println()
 }
 
 func (c *Compiler) emit(opcode code.OpCode, operands ...int) int {
