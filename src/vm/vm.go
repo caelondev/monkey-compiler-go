@@ -5,7 +5,6 @@ import (
 	"math"
 
 	"github.com/caelondev/monkey-compiler-go/src/code"
-	"github.com/caelondev/monkey-compiler-go/src/compiler"
 	"github.com/caelondev/monkey-compiler-go/src/object"
 )
 
@@ -19,23 +18,6 @@ type VM struct {
 	stack        []object.Object
 	globals      []object.Object
 	stackPointer int
-}
-
-func New(bytecode *compiler.Bytecode) *VM {
-	return &VM{
-		instructions: bytecode.Instructions,
-		constants:    bytecode.Constants,
-
-		stack:        make([]object.Object, STACK_SIZE),
-		globals:      make([]object.Object, GLOBAL_SIZE),
-		stackPointer: 0,
-	}
-}
-
-func NewWithGlobalStore(bytecode *compiler.Bytecode, global []object.Object) *VM {
-	vm := New(bytecode)
-	vm.globals = global
-	return vm
 }
 
 func (vm *VM) Run() error {

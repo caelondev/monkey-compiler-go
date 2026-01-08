@@ -10,6 +10,7 @@ import (
 	"github.com/caelondev/monkey-compiler-go/src/lexer"
 	"github.com/caelondev/monkey-compiler-go/src/object"
 	"github.com/caelondev/monkey-compiler-go/src/parser"
+	"github.com/caelondev/monkey-compiler-go/src/vm"
 )
 
 var ENVIRONMENT *object.Environment = object.NewEnvironment(nil)
@@ -53,6 +54,19 @@ func RunSource(source string, out io.Writer) object.Object {
 	result := evaluator.Evaluate(program, ENVIRONMENT)
 
 	return result
+}
+
+func RunBytecode(path string) {
+	vm, err := vm.NewFromFile(path)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := vm.Run(); err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Execution finished. Last popped value: ", vm.LastPoppedElement().Inspect())
 }
 
 // func formatFileError(err *object.Error, source string, out io.Writer) {
