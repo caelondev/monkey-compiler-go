@@ -124,6 +124,18 @@ func (vm *VM) Run() error {
 
 			vm.stack[vm.stackPointer-1] = boolObj
 
+		case code.OpJump:
+			pos := int(code.ReadUint16(vm.instructions[instPointer+1:]))
+			instPointer = pos - 1
+		case code.OpJumpNotTruthy:
+			pos := int(code.ReadUint16(vm.instructions[instPointer+1:]))
+			instPointer += 2
+
+			condition := vm.pop()
+			if !isTruthy(condition) {
+				instPointer = pos - 1
+			}
+
 		case code.OpPop:
 			vm.pop()
 		}

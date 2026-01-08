@@ -9,9 +9,17 @@ import (
 	"github.com/caelondev/monkey-compiler-go/src/token"
 )
 
+type EmittedInstruction struct {
+	OpCode   code.OpCode
+	Position int
+}
+
 type Compiler struct {
 	instructions code.Instructions // []byte
 	constants    []object.Object
+
+	lastInstruction     EmittedInstruction
+	previousInstruction EmittedInstruction
 }
 
 type Bytecode struct {
@@ -23,6 +31,9 @@ func New() *Compiler {
 	return &Compiler{
 		instructions: make(code.Instructions, 0),
 		constants:    make([]object.Object, 0),
+
+		lastInstruction:     EmittedInstruction{},
+		previousInstruction: EmittedInstruction{},
 	}
 }
 
@@ -113,6 +124,93 @@ func (c *Compiler) Compile(node ast.Node) error {
 		default:
 			return fmt.Errorf("Unknown unary operator token: '%s'", node.Operator.Type)
 		}
+
+	case *ast.BlockStatement:
+		for _, stmt := range node.Statements {
+			err := c.Compile(stmt)
+			if err != nil {
+				return err
+			}
+		}
+
+	case *ast.IfStatement:
+		err := c.Compile(node.Condition)
+		if err != nil {
+			return err
+		}
+
+		// Emit with some bogus value
+		jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
+
+		err = c.Compile(node.Consequence)
+		if err != nil {
+			return err
+		}
+
+		if c.lastInstructionIsPop() {
+			c.removeLastPop()
+		}
+
+		if node.Alternative == nil {
+			// Reassign jump pos to the end of if stmt address
+			posAfterConsequence := len(c.instructions)
+			c.changeOperand(jumpNotTruthyPos, posAfterConsequence)
+		} else {
+			// Emit with some bogus value
+			jumpPos := c.emit(code.OpJump, 9999)
+			posAfterConsequence := len(c.instructions)
+			c.changeOperand(jumpNotTruthyPos, posAfterConsequence)
+
+			err := c.Compile(node.Alternative)
+			if err != nil {
+				return err
+			}
+
+			if c.lastInstructionIsPop() {
+				c.removeLastPop()
+			}
+
+			posAfterAlternative := len(c.instructions)
+			c.changeOperand(jumpPos, posAfterAlternative)
+		}
+
+	case *ast.TernaryExpression:
+		err := c.Compile(node.Condition)
+		if err != nil {
+			return err
+		}
+
+		// Emit with bogus value / placeholder ---
+		jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
+
+		err = c.Compile(node.Consequence)
+		if err != nil {
+			return err
+		}
+
+		if c.lastInstructionIsPop() {
+			c.removeLastPop()
+		}
+
+		// Emit with bogus value / placeholder ---
+		jumpPos := c.emit(code.OpJump, 9999)
+		posAfterConsequence := len(c.instructions)
+
+		// Set end of jumpNotTruthyPos to "jump pos"
+		// But we're not directly using jumpPos
+		c.changeOperand(jumpNotTruthyPos, posAfterConsequence)
+	
+		err = c.Compile(node.Alternative)
+		if err != nil {
+			return err
+		}
+
+		if c.lastInstructionIsPop() {
+			c.removeLastPop()
+		}
+
+		posAfterAlternative := len(c.instructions)
+		c.changeOperand(jumpPos, posAfterAlternative)
 	}
 
 	return nil // Default
@@ -121,7 +219,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 func (c *Compiler) Disassemble() {
 	bytecode := c.Bytecode()
 
-	fmt.Println("== Disassembly ==")
+	fmt.Println("\n== Disassembler ==")
 	instructions := bytecode.Instructions
 	i := 0
 	for i < len(instructions) {
@@ -154,7 +252,45 @@ func (c *Compiler) Disassemble() {
 func (c *Compiler) emit(opcode code.OpCode, operands ...int) int {
 	instruction := code.Make(opcode, operands...)
 	position := c.addInstruction(instruction)
+
+	c.setLastInstruction(opcode, position)
 	return position
+}
+
+func (c *Compiler) setLastInstruction(opcode code.OpCode, position int) {
+	// Shifts instructions
+	previous := c.lastInstruction
+	last := EmittedInstruction{OpCode: opcode, Position: position}
+
+	c.previousInstruction = previous
+	c.lastInstruction = last
+}
+
+func (c *Compiler) changeOperand(opPos int, operand int) {
+	// Get opcode on given position
+	opcode := code.OpCode(c.instructions[opPos])
+
+	// Attach an operand to the opcode
+	newInstruction := code.Make(opcode, operand)
+
+	c.replaceInstruction(opPos, newInstruction)
+}
+
+func (c *Compiler) replaceInstruction(position int, newInstruction []byte) {
+	for i := 0; i < len(newInstruction); i++ {
+		// Replaces all instruction bytes in the given offset
+		c.instructions[position+i] = newInstruction[i]
+	}
+}
+
+func (c *Compiler) lastInstructionIsPop() bool {
+	return c.lastInstruction.OpCode == code.OpPop
+}
+
+func (c *Compiler) removeLastPop() {
+	// resets the instructions up until the last instruction position
+	c.instructions = c.instructions[:c.lastInstruction.Position]
+	c.lastInstruction = c.previousInstruction
 }
 
 func (c *Compiler) addConstant(obj object.Object) int {
@@ -165,7 +301,7 @@ func (c *Compiler) addConstant(obj object.Object) int {
 func (c *Compiler) addInstruction(ins []byte) int {
 	insPos := len(c.instructions)
 	c.instructions = append(c.instructions, ins...)
-	return insPos
+	return insPos // Return instruction "address"
 }
 
 func (c *Compiler) Bytecode() *Bytecode {
