@@ -15,6 +15,9 @@ import (
 	"github.com/caelondev/monkey-compiler-go/src/vm"
 )
 
+const MAGIC = "MCGO"
+const VERSION = 1
+
 func BuildFile(path string) {
 	input, err := os.ReadFile(path)
 	if err != nil {
@@ -40,9 +43,9 @@ func BuildFile(path string) {
 
 	bytecode := comp.Bytecode()
 
+	// Convert bytecode to raw bytes
 	encodedBytes := EncodeBytecode(bytecode.Constants, bytecode.Instructions)
 
-	// Use FormatFileName to get the output path
 	outputPath := FormatFileName(path)
 	WriteByteToFile(outputPath, encodedBytes)
 
@@ -52,16 +55,9 @@ func BuildFile(path string) {
 func EncodeBytecode(constants []object.Object, instructions []byte) []byte {
 	buf := new(bytes.Buffer)
 
-	// magic
-	buf.Write([]byte("MCGO"))
-
-	// version
-	buf.WriteByte(1)
-
-	// constants
+	buf.Write([]byte(MAGIC))
+	buf.WriteByte(VERSION)
 	buf.Write(serializeConstants(constants))
-
-	// instructions
 	buf.Write(serializeInstructions(instructions))
 
 	return buf.Bytes()

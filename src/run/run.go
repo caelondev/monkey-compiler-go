@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 	"unicode/utf8"
 
 	"github.com/caelondev/monkey-compiler-go/src/evaluation"
@@ -62,11 +63,16 @@ func RunBytecode(path string) {
 		panic(err)
 	}
 
-	if err := vm.Run(); err != nil {
+	start := time.Now()
+	err = vm.Run()
+	duration := time.Since(start)
+
+	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Execution finished. Last popped value: ", vm.LastPoppedElement().Inspect())
+	fmt.Println("Runtime execution duration: ", duration)
 }
 
 // func formatFileError(err *object.Error, source string, out io.Writer) {

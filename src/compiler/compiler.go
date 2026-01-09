@@ -122,6 +122,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 		num := &object.Number{Value: node.Value}
 		c.emit(code.OpConstant, c.addConstant(num))
 
+	case *ast.AbsoluteExpression:
+		err := c.Compile(node.Value)
+		if err != nil {
+			return err
+		}
+	
+		c.emit(code.OpAbsolute)
+
 	case *ast.UnaryExpression:
 		err := c.Compile(node.Right)
 		if err != nil {
@@ -250,9 +258,12 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.emit(code.OpGetGlobal, symbol.Index)
+
+	default:
+		return fmt.Errorf("Unknown AST node: '%s' (%T)", node.String(), node)
 	}
 
-	return nil // Default
+	return nil
 }
 
 func (c *Compiler) Disassemble() {

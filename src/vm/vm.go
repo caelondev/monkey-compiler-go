@@ -102,6 +102,19 @@ func (vm *VM) Run() error {
 
 			vm.stack[vm.stackPointer-1] = &object.Number{Value: -num.Value}
 
+		case code.OpAbsolute:
+			prev := vm.stack[vm.stackPointer-1]
+			num, ok := prev.(*object.Number)
+			if !ok {
+				return fmt.Errorf("Cannot take the absolute value of a non-numeric value type '%s'\n", prev.Type())
+			}
+
+			// Avoid allocation
+			if num.Value < 0 {
+				// NOTE: This is a trick, since calling math.Abs() is expensive
+				vm.stack[vm.stackPointer-1] = &object.Number{Value: -num.Value}
+			}
+
 		case code.OpNot:
 			prev := vm.stack[vm.stackPointer-1]
 			var boolObj *object.Boolean

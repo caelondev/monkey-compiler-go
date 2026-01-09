@@ -76,6 +76,7 @@ func (p *Parser) createLookupTable() {
 	p.registerInfix(token.LEFT_BRACKET, p.parseIndexExpression) // Indexing
 
 	p.registerPrefix(token.MINUS, p.parseUnaryExpression)
+	p.registerPrefix(token.PIPE, p.parseAbsoluteExpression)
 
 	p.registerPrefix(token.NIL, p.parseNilLiteral)
 	p.registerPrefix(token.NOT_A_NUMBER, p.parseNaNLiteral)

@@ -473,3 +473,30 @@ func (n *HashLiteral) String() string {
 func (n *HashLiteral) TokenLiteral() string {
 	return n.Token.Literal
 }
+
+// ---------------- AbsoluteExpression ----------------
+type AbsoluteExpression struct {
+	Token token.Token
+	Value Expression
+}
+
+func (n *AbsoluteExpression) GetLine() uint {
+	return n.Token.Line
+}
+func (n *AbsoluteExpression) GetColumn() uint {
+	return n.Token.Column
+}
+
+func (n *AbsoluteExpression) expressionNode() {}
+func (n *AbsoluteExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("|")
+	out.WriteString(n.Value.String())
+	out.WriteString("|")
+
+	return out.String()
+}
+func (n *AbsoluteExpression) TokenLiteral() string {
+	return n.Token.Literal
+}

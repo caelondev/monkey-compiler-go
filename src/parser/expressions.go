@@ -181,6 +181,20 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 	return expr
 }
 
+func (p *Parser) parseAbsoluteExpression() ast.Expression {
+	expr := &ast.AbsoluteExpression{Token: p.currentToken}
+
+	p.nextToken() // Advance |
+
+	expr.Value = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.PIPE) {
+		return nil
+	}
+
+	return expr
+}
+
 /*
 * [ INFIX EXPRESSIONS ]
 **/

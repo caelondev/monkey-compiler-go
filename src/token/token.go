@@ -27,6 +27,7 @@ const (
 	STAR       = "*"
 	SLASH      = "/"
 	CARET      = "^"
+	PIPE       = "|"
 
 	LESS          = "<"
 	GREATER       = ">"
