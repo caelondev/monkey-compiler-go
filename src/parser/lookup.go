@@ -37,6 +37,7 @@ var precedence = map[token.TokenType]int{
 	token.NOT:              UNARY,
 	token.LEFT_PARENTHESIS: CALL,
 	token.LEFT_BRACKET:     CALL,
+	token.LEFT_BRACE:       CALL,
 }
 
 func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
@@ -74,6 +75,7 @@ func (p *Parser) createLookupTable() {
 	// Array
 	p.registerPrefix(token.LEFT_BRACKET, p.parseArrayLiteral)
 	p.registerInfix(token.LEFT_BRACKET, p.parseIndexExpression) // Indexing
+	p.registerInfix(token.LEFT_BRACE, p.parseIndexSliceExpression)
 
 	p.registerPrefix(token.MINUS, p.parseUnaryExpression)
 	p.registerPrefix(token.PIPE, p.parseAbsoluteExpression)

@@ -28,6 +28,7 @@ const (
 	SLASH      = "/"
 	CARET      = "^"
 	PIPE       = "|"
+	TILDE      = "~"
 
 	LESS          = "<"
 	GREATER       = ">"

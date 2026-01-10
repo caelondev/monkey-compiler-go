@@ -131,7 +131,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if err != nil {
 			return err
 		}
-	
+
 		c.emit(code.OpAbsolute)
 
 	case *ast.UnaryExpression:
@@ -263,6 +263,32 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		c.emit(code.OpGetGlobal, symbol.Index)
 
+	case *ast.IndexSliceExpression:
+		err := c.Compile(node.Target)
+		if err != nil {
+			return err
+		}
+
+		if node.Start != nil {
+			err = c.Compile(node.Start)
+			if err != nil {
+				return err
+			}
+		} else {
+			c.emit(code.OpNil)
+		}
+
+		if node.End != nil {
+			err = c.Compile(node.End)
+			if err != nil {
+				return err
+			}
+		} else {
+			c.emit(code.OpNil)
+		}
+
+		c.emit(code.OpSlice)
+
 	default:
 		return fmt.Errorf("Unknown AST node: '%s' (%T)", node.String(), node)
 	}
@@ -300,6 +326,19 @@ func (c *Compiler) Disassemble() {
 			fmt.Printf(" %v", operands)
 		}
 		fmt.Println()
+	}
+
+	fmt.Println("\nConstants:")
+	for idx, c := range bytecode.Constants {
+		switch v := c.(type) {
+		case *object.Number:
+			fmt.Printf("%d: %g\n", idx, v.Value)
+		case *object.String:
+			fmt.Printf("%d: \"%s\"\n", idx, v.Value)
+
+		default:
+			fmt.Printf("%d: unknown constant type %T\n", idx, c)
+		}
 	}
 	fmt.Println()
 }

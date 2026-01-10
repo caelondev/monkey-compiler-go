@@ -2,7 +2,6 @@ package vm
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/caelondev/monkey-compiler-go/src/code"
 	"github.com/caelondev/monkey-compiler-go/src/object"
@@ -34,51 +33,37 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		// NOTE: We could one-line the cases here ---
+		// but for readability, i guess this is fine ---
 		case code.OpExponent:
-			err := vm.executeNumericalBinop(func(left, right *object.Number) {
-				vm.push(&object.Number{Value: math.Pow(left.Value, right.Value)})
-			})
-
+			err := vm.executeBinop(op)
 			if err != nil {
 				return err
 			}
 
 		case code.OpAdd:
-			err := vm.executeNumericalBinop(func(left, right *object.Number) {
-				vm.push(&object.Number{Value: left.Value + right.Value})
-			})
-
+			err := vm.executeBinop(op)
 			if err != nil {
 				return err
 			}
 
 		case code.OpSubtract:
-			err := vm.executeNumericalBinop(func(left, right *object.Number) {
-				vm.push(&object.Number{Value: left.Value - right.Value})
-			})
-
+			err := vm.executeBinop(op)
 			if err != nil {
 				return err
 			}
 
 		case code.OpMultiply:
-			err := vm.executeNumericalBinop(func(left, right *object.Number) {
-				vm.push(&object.Number{Value: left.Value * right.Value})
-			})
-
+			err := vm.executeBinop(op)
 			if err != nil {
 				return err
 			}
 
 		case code.OpDivide:
-			err := vm.executeNumericalBinop(func(left, right *object.Number) {
-				vm.push(&object.Number{Value: left.Value / right.Value})
-			})
-
+			err := vm.executeBinop(op)
 			if err != nil {
 				return err
 			}
-
 
 		case code.OpEqual, code.OpNotEqual, code.OpLess, code.OpLessEqual, code.OpGreater, code.OpGreaterEqual:
 			err := vm.executeComparison(op)
@@ -99,7 +84,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpNegate:
-			prev := vm.stack[vm.stackPointer-1]
+			prev := vm.peekStackAddr(0)
 			num, ok := prev.(*object.Number)
 			if !ok {
 				return fmt.Errorf("Cannot negate non-numeric value type '%s'\n", prev.Type())
@@ -108,7 +93,7 @@ func (vm *VM) Run() error {
 			vm.stack[vm.stackPointer-1] = &object.Number{Value: -num.Value}
 
 		case code.OpAbsolute:
-			prev := vm.stack[vm.stackPointer-1]
+			prev := vm.peekStackAddr(0)
 			num, ok := prev.(*object.Number)
 			if !ok {
 				return fmt.Errorf("Cannot take the absolute value of a non-numeric value type '%s'\n", prev.Type())
@@ -120,7 +105,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpNot:
-			prev := vm.stack[vm.stackPointer-1]
+			prev := vm.peekStackAddr(0)
 			var boolObj *object.Boolean
 
 			// Flip value
@@ -165,6 +150,39 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpSlice:
+			end := vm.pop()
+			start := vm.pop()
+			target := vm.pop()
+
+			if start.Type() == object.NIL_OBJECT {
+				start = &object.Number{Value: 0}
+			}
+			if end.Type() == object.NIL_OBJECT {
+				end = &object.Number{Value: float64(len(target.Inspect()) - 2)}
+				// NOTE: -2 is for the "" trim
+			}
+
+			if start.Type() != object.NUMBER_OBJECT || end.Type() != object.NUMBER_OBJECT {
+				return fmt.Errorf("Cannot slice expression with invalid index slicing types ('%s' and '%s')", start.Type(), end.Type())
+			}
+
+			endVal := int(end.(*object.Number).Value)
+			startVal := int(start.(*object.Number).Value)
+
+			// Check over/under slice
+			// NOTE: -2 is for the "" trim
+			if endVal > len(target.Inspect())-2 || startVal < 0 {
+				return fmt.Errorf("Cannot slice: index out of bounds [%d:%d] (length %d)", startVal, endVal, len(target.Inspect()))
+			}
+
+			switch target.Type() {
+			case object.STRING_OBJECT:
+				targetVal := target.(*object.String).Value
+				slicedStr := targetVal[startVal:endVal]
+				vm.push(&object.String{Value: slicedStr})
+			}
+
 		case code.OpPop:
 			vm.pop()
 		}
@@ -202,4 +220,8 @@ func (vm *VM) LastPoppedElement() object.Object {
 
 func (vm *VM) GetStackPointer() int {
 	return vm.stackPointer
+}
+
+func (vm *VM) peekStackAddr(n int) object.Object {
+	return vm.stack[vm.stackPointer-n-1]
 }

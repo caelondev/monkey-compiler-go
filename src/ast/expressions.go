@@ -500,3 +500,43 @@ func (n *AbsoluteExpression) String() string {
 func (n *AbsoluteExpression) TokenLiteral() string {
 	return n.Token.Literal
 }
+
+// ---------------- IndexSliceExpression ----------------
+type IndexSliceExpression struct {
+	Token  token.Token
+	Target Expression
+	Start  Expression
+	End    Expression
+}
+
+func (n *IndexSliceExpression) GetLine() uint {
+	return n.Token.Line
+}
+func (n *IndexSliceExpression) GetColumn() uint {
+	return n.Token.Column
+}
+
+func (n *IndexSliceExpression) expressionNode() {}
+func (n *IndexSliceExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(n.Target.String())
+	out.WriteString("{")
+
+	if n.Start != nil {
+		out.WriteString(n.Start.String())
+	}
+
+	out.WriteString("~")
+
+	if n.End != nil {
+		out.WriteString(n.End.String())
+	}
+
+	out.WriteString("}")
+
+	return out.String()
+}
+func (n *IndexSliceExpression) TokenLiteral() string {
+	return n.Token.Literal
+}

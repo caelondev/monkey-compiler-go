@@ -71,10 +71,14 @@ func (e *Evaluator) Evaluate(node ast.Node, env *object.Environment) object.Obje
 		return e.evaluateCallExpression(node, env)
 	case *ast.ArrayLiteral:
 		return e.evaluateArrayLiteral(node, env)
+	case *ast.AbsoluteExpression:
+		return e.evaluateAbsoluteExpression(node, env)
 	case *ast.IndexExpression:
 		return e.evaluateIndexExpression(node, env)
 	case *ast.IndexAssignmentExpression:
 		return e.evaluateIndexAssignmentExpression(node, env)
+	case *ast.IndexSliceExpression:
+		return e.evaluateIndexSliceExpression(node, env)
 	case *ast.HashLiteral:
 		return e.evaluateHashLiteral(node, env)
 

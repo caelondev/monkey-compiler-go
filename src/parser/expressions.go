@@ -322,6 +322,51 @@ func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 	return expr
 }
 
+func (p *Parser) parseIndexSliceExpression(left ast.Expression) ast.Expression {
+	expr := &ast.IndexSliceExpression{Token: p.currentToken, Target: left}
+
+	// expr{~m}
+	if p.peekTokenIs(token.TILDE) {
+		p.nextToken() // Eat {
+		expr.Start = nil
+
+		// expr{~}
+		if p.peekTokenIs(token.RIGHT_BRACE) {
+			p.nextToken() // Eat ~
+			expr.End = nil
+			return expr
+		}
+
+		p.nextToken() // Eat ~
+		expr.End = p.parseExpression(LOWEST)
+		if !p.expectPeek(token.RIGHT_BRACE) {
+			return nil
+		}
+
+		return expr
+	}
+
+	// expr{n~}
+	p.nextToken() // Eat {
+	expr.Start = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.TILDE) {
+		return nil
+	}
+
+	// expr{n~m}
+	if !p.peekTokenIs(token.RIGHT_BRACE) {
+		p.nextToken() // Eat ~
+		expr.End = p.parseExpression(LOWEST)
+	}
+
+	if !p.expectPeek(token.RIGHT_BRACE) {
+		return nil
+	}
+
+	return expr
+}
+
 /*
 * [ HELPERS ]
 **/

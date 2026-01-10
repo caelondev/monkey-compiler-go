@@ -1,24 +1,27 @@
 package vm
 
 import (
-	"fmt"
-
+	"github.com/caelondev/monkey-compiler-go/src/code"
 	"github.com/caelondev/monkey-compiler-go/src/object"
+	"github.com/caelondev/monkey-compiler-go/src/token"
 )
 
-func (vm *VM) executeNumericalBinop(fn func(left, right *object.Number)) error {
-	right := vm.pop()
-	left := vm.pop()
+func opcodeToOperator(opcode code.OpCode) token.TokenType {
+	switch opcode {
+	case code.OpAdd:
+		return token.PLUS
+	case code.OpSubtract:
+		return token.MINUS
+	case code.OpMultiply:
+		return token.STAR
+	case code.OpDivide:
+		return token.SLASH
+	case code.OpExponent:
+		return token.CARET
 
-	if right.Type() != object.NUMBER_OBJECT || left.Type() != object.NUMBER_OBJECT {
-		return fmt.Errorf("Cannot perform binary operation to unsupported type (%s and %s)", left.Type(), right.Type())
+	default:
+		return token.ILLEGAL
 	}
-
-	leftObj := left.(*object.Number)
-	rightObj := right.(*object.Number)
-
-	fn(leftObj, rightObj)
-	return nil
 }
 
 func isTruthy(obj object.Object) bool {

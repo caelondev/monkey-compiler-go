@@ -1,3 +1,3 @@
-var name = "foobar";
+var x = "hello world";
 
-name;
+x{2~3}

@@ -25,6 +25,8 @@ func readString(buf *bytes.Reader) (string, error) {
 
 	// Allocate bytes based on string length
 	strBytes := make([]byte, length)
+
+	// Set allocated bytes to char bytes
 	if _, err := buf.Read(strBytes); err != nil {
 		return "", err
 	}

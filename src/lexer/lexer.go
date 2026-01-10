@@ -57,7 +57,10 @@ func (l *Lexer) NextToken() token.Token {
 		tok = l.newTokenWithPos(token.SLASH, l.currentChar, startLine, startColumn)
 		l.readChar()
 	case '|':
-		tok = l.newCompound(token.PIPE, token.NOT_EQUAL, startLine, startColumn)
+		tok = l.newTokenWithPos(token.PIPE, l.currentChar, startLine, startColumn)
+		l.readChar()
+	case '~':
+		tok = l.newTokenWithPos(token.TILDE, l.currentChar, startLine, startColumn)
 		l.readChar()
 	case '!':
 		tok = l.newCompound(token.BANG, token.NOT_EQUAL, startLine, startColumn)

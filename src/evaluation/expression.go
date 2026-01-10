@@ -564,3 +564,135 @@ func (e *Evaluator) evaluateHashLiteral(node *ast.HashLiteral, env *object.Envir
 
 	return &object.Hash{Pairs: pairs}
 }
+
+func (e *Evaluator) evaluateAbsoluteExpression(node *ast.AbsoluteExpression, env *object.Environment) object.Object {
+	num := e.Evaluate(node.Value, env).(*object.Number)
+
+	if num.Value >= 0 {
+		return num
+	}
+
+	return &object.Number{Value: -num.Value}
+}
+
+func (e *Evaluator) evaluateIndexSliceExpression(node *ast.IndexSliceExpression, env *object.Environment) object.Object {
+	target := e.Evaluate(node.Target, env)
+	if target.Type() == object.STRING_OBJECT {
+		return e.evaluateStringSlice(target.(*object.String), node, env)
+	} else if target.Type() == object.ARRAY_OBJECT {
+		return e.evaluateArraySlice(target.(*object.Array), node, env)
+	} else {
+		e.throwErr(
+			node.Target,
+			"This error occurs when trying to slice an invalid literal type",
+			"Cannot slice type '%s'",
+			target.Type())
+		return nil
+	}
+}
+
+func (e *Evaluator) evaluateStringSlice(str *object.String, node *ast.IndexSliceExpression, env *object.Environment) object.Object {
+	var start, end int
+
+	if node.Start != nil {
+		startObj := e.Evaluate(node.Start, env)
+		startNum, ok := startObj.(*object.Number)
+		if !ok {
+			e.throwErr(
+				node.Start,
+				"This error occurs whem trying to use an invalid runtime value when indexing",
+				"Start index must be a number, got %s",
+				startObj.Type(),
+			)
+			return nil
+		}
+		start = int(startNum.Value)
+	} else {
+		start = 0
+	}
+
+	if node.End != nil {
+		endObj := e.Evaluate(node.End, env)
+		endNum, ok := endObj.(*object.Number)
+		if !ok {
+			e.throwErr(
+				node.End,
+				"This error occurs whem trying to use an invalid runtime value when indexing",
+				"End index must be a number, got %s",
+				endObj.Type(),
+			)
+			return nil
+		}
+		end = int(endNum.Value)
+	} else {
+		end = len(str.Value)
+	}
+
+	if start < 0 || start > len(str.Value) || end < 0 || end > len(str.Value) || start > end {
+		e.throwErr(
+			node,
+			"This error occurs when trying to slice more or under the length of the target",
+			"Invalid slice range [%d:%d] for string of length %d",
+			start,
+			end,
+			len(str.Value),
+		)
+		return nil
+	}
+
+	return &object.String{Value: str.Value[start:end]}
+}
+
+func (e *Evaluator) evaluateArraySlice(arr *object.Array, node *ast.IndexSliceExpression, env *object.Environment) object.Object {
+	var start, end int
+
+	if node.Start != nil {
+		startObj := e.Evaluate(node.Start, env)
+		startNum, ok := startObj.(*object.Number)
+		if !ok {
+			e.throwErr(
+				node.Start,
+				"This error occurs whem trying to use an invalid runtime value when indexing",
+				"Start index must be a number, got %s",
+				startObj.Type(),
+			)
+			return nil
+		}
+		start = int(startNum.Value)
+	} else {
+		start = 0
+	}
+
+	if node.End != nil {
+		endObj := e.Evaluate(node.End, env)
+		endNum, ok := endObj.(*object.Number)
+		if !ok {
+			e.throwErr(
+				node.End,
+				"This error occurs whem trying to use an invalid runtime value when indexing",
+				"End index must be a number, got %s",
+				endObj.Type(),
+			)
+			return nil
+		}
+		end = int(endNum.Value)
+	} else {
+		end = len(arr.Elements)
+	}
+
+	if start < 0 || start > len(arr.Elements) || end < 0 || end > len(arr.Elements) || start > end {
+		e.throwErr(
+			node,
+			"This error occurs when trying to slice more or under the length of the target",
+			"Invalid slice range [%d:%d] for array of length %d",
+			start,
+			end,
+			len(arr.Elements),
+		)
+		return nil
+	}
+
+	elements := make([]object.Object, end-start)
+	copy(elements, arr.Elements[start:end])
+	return &object.Array{Elements: elements}
+}
