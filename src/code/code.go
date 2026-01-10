@@ -14,6 +14,7 @@ const (
 	OpTrue
 	OpFalse
 	OpNil
+	OpArray
 
 	OpSlice
 
@@ -54,25 +55,26 @@ var definitions = map[OpCode]*Definition{
 	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
 	OpGetGlobal:     {"OpGetGlobal", []int{2}},
 	OpSetGlobal:     {"OpSetGlobal", []int{2}},
+	OpArray:         {"OpArray", []int{2}},
 	OpSlice:         {"OpSlice", []int{}},
-	OpAdd:          {"OpAdd", []int{}},
-	OpNil:          {"OpNil", []int{}},
-	OpFalse:        {"OpFalse", []int{}},
-	OpTrue:         {"OpTrue", []int{}},
-	OpEqual:        {"OpEqual", []int{}},
-	OpNotEqual:     {"OpNotEqual", []int{}},
-	OpNegate:       {"OpNegate", []int{}},
-	OpAbsolute:     {"OpAbsolute", []int{}},
-	OpNot:          {"OpNot", []int{}},
-	OpGreater:      {"OpGreater", []int{}},
-	OpGreaterEqual: {"OpGreaterEqual", []int{}},
-	OpLess:         {"OpLess", []int{}},
-	OpLessEqual:    {"OpLessEqual", []int{}},
-	OpSubtract:     {"OpSubtract", []int{}},
-	OpMultiply:     {"OpMultiply", []int{}},
-	OpDivide:       {"OpDivide", []int{}},
-	OpExponent:     {"OpExponent", []int{}},
-	OpPop:          {"OpPop", []int{}},
+	OpAdd:           {"OpAdd", []int{}},
+	OpNil:           {"OpNil", []int{}},
+	OpFalse:         {"OpFalse", []int{}},
+	OpTrue:          {"OpTrue", []int{}},
+	OpEqual:         {"OpEqual", []int{}},
+	OpNotEqual:      {"OpNotEqual", []int{}},
+	OpNegate:        {"OpNegate", []int{}},
+	OpAbsolute:      {"OpAbsolute", []int{}},
+	OpNot:           {"OpNot", []int{}},
+	OpGreater:       {"OpGreater", []int{}},
+	OpGreaterEqual:  {"OpGreaterEqual", []int{}},
+	OpLess:          {"OpLess", []int{}},
+	OpLessEqual:     {"OpLessEqual", []int{}},
+	OpSubtract:      {"OpSubtract", []int{}},
+	OpMultiply:      {"OpMultiply", []int{}},
+	OpDivide:        {"OpDivide", []int{}},
+	OpExponent:      {"OpExponent", []int{}},
+	OpPop:           {"OpPop", []int{}},
 }
 
 func Lookup(opcode OpCode) (*Definition, error) {

@@ -289,6 +289,16 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		c.emit(code.OpSlice)
 
+	case *ast.ArrayLiteral:
+		for _, element := range node.Elements {
+			err := c.Compile(element)
+			if err != nil {
+				return err
+			}
+		}
+
+		c.emit(code.OpArray, len(node.Elements))
+
 	default:
 		return fmt.Errorf("Unknown AST node: '%s' (%T)", node.String(), node)
 	}

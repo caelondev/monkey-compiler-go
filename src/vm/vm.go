@@ -180,7 +180,24 @@ func (vm *VM) Run() error {
 			case object.STRING_OBJECT:
 				targetVal := target.(*object.String).Value
 				slicedStr := targetVal[startVal:endVal]
-				vm.push(&object.String{Value: slicedStr})
+				err := vm.push(&object.String{Value: slicedStr})
+				if err != nil {
+					return err
+				}
+			}
+
+		case code.OpArray:
+			arrayLength := code.ReadUint16(vm.instructions[instPointer+1:])
+			instPointer += 2 // Skip length bytes
+
+			elements := make([]object.Object, arrayLength)
+			for i := int(arrayLength) - 1; i >= 0; i-- {
+				elements[i] = vm.pop()
+			}
+
+			err := vm.push(&object.Array{Elements: elements})
+			if err != nil {
+				return err
 			}
 
 		case code.OpPop:
