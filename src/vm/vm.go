@@ -109,9 +109,8 @@ func (vm *VM) Run() error {
 				return fmt.Errorf("Cannot take the absolute value of a non-numeric value type '%s'\n", prev.Type())
 			}
 
-			// Avoid allocation
 			if num.Value < 0 {
-				// NOTE: This is a trick, since calling math.Abs() is expensive
+				// NOTE: This is a trick, since calling math.Abs() is expensive/slower
 				vm.stack[vm.stackPointer-1] = &object.Number{Value: -num.Value}
 			}
 
@@ -192,7 +191,10 @@ func (vm *VM) pop() object.Object {
 	vm.stackPointer--
 	return obj
 }
-
 func (vm *VM) LastPoppedElement() object.Object {
 	return vm.stack[vm.stackPointer]
+}
+
+func (vm *VM) GetStackPointer() int {
+	return vm.stackPointer
 }

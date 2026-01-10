@@ -71,8 +71,15 @@ func RunBytecode(path string) {
 		panic(err)
 	}
 
+	// DEBUGS
 	fmt.Println("Execution finished. Last popped value: ", vm.LastPoppedElement().Inspect())
 	fmt.Println("Runtime execution duration: ", duration)
+
+	if vm.GetStackPointer() != 0 {
+		fmt.Printf("Stack is not clean, unused stack elements count: %d\n", vm.GetStackPointer())
+	} else {
+		fmt.Println("Stack is clean, no stack leaks found")
+	}
 }
 
 // func formatFileError(err *object.Error, source string, out io.Writer) {

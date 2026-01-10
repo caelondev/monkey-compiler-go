@@ -28,16 +28,6 @@ func serializeConstants(constants []object.Object) []byte {
 			buf.WriteByte(byte(code.CONSTANT_NUMBER)) // tag
 			writeFloat64(buf, obj.Value)    // 8 bytes
 
-		case *object.Boolean:
-			if obj.Value {
-			buf.WriteByte(byte(code.CONSTANT_BOOL_TRUE))
-			} else {
-				buf.WriteByte(byte(code.CONSTANT_BOOL_FALSE))
-			}
-
-		case *object.Nil:
-			buf.WriteByte(byte(code.CONSTANT_NIL))
-
 		default:
 			panic("unsupported constant type")
 		}

@@ -39,6 +39,8 @@ func Main() {
 	}
 
 	if len(args) == 1 {
+		// TODO: File runner still uses the old ---
+		// Evaluator and not the VM
 		run.RunFile(args[0])
 		return
 	}

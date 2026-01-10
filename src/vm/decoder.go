@@ -58,18 +58,12 @@ func DecodeBytecode(data []byte) (*compiler.Bytecode, error) {
 		}
 
 		switch tag {
-		case byte(code.CONSTANT_NIL):
-			constants = append(constants, object.NIL)
 		case byte(code.CONSTANT_NUMBER):
 			num, err := readFloat64(buf)
 			if err != nil {
 				return nil, err
 			}
 			constants = append(constants, &object.Number{Value: num})
-		case byte(code.CONSTANT_BOOL_FALSE):
-			constants = append(constants, object.FALSE)
-		case byte(code.CONSTANT_BOOL_TRUE):
-			constants = append(constants, object.TRUE)
 		default:
 			return nil, fmt.Errorf("unknown constant tag: %d", tag)
 		}
