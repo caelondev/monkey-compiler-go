@@ -35,45 +35,50 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpExponent:
-			right := vm.pop()
-			left := vm.pop()
-			rightVal := right.(*object.Number).Value
-			leftVal := left.(*object.Number).Value
+			err := vm.executeNumericalBinop(func(left, right *object.Number) {
+				vm.push(&object.Number{Value: math.Pow(left.Value, right.Value)})
+			})
 
-			total := &object.Number{Value: math.Pow(leftVal, rightVal)}
-			vm.push(total)
+			if err != nil {
+				return err
+			}
+
 		case code.OpAdd:
-			right := vm.pop()
-			left := vm.pop()
-			rightVal := right.(*object.Number).Value
-			leftVal := left.(*object.Number).Value
+			err := vm.executeNumericalBinop(func(left, right *object.Number) {
+				vm.push(&object.Number{Value: left.Value + right.Value})
+			})
 
-			total := &object.Number{Value: leftVal + rightVal}
-			vm.push(total)
+			if err != nil {
+				return err
+			}
+
 		case code.OpSubtract:
-			right := vm.pop()
-			left := vm.pop()
-			rightVal := right.(*object.Number).Value
-			leftVal := left.(*object.Number).Value
+			err := vm.executeNumericalBinop(func(left, right *object.Number) {
+				vm.push(&object.Number{Value: left.Value - right.Value})
+			})
 
-			total := &object.Number{Value: leftVal - rightVal}
-			vm.push(total)
+			if err != nil {
+				return err
+			}
+
 		case code.OpMultiply:
-			right := vm.pop()
-			left := vm.pop()
-			rightVal := right.(*object.Number).Value
-			leftVal := left.(*object.Number).Value
+			err := vm.executeNumericalBinop(func(left, right *object.Number) {
+				vm.push(&object.Number{Value: left.Value * right.Value})
+			})
 
-			total := &object.Number{Value: leftVal * rightVal}
-			vm.push(total)
+			if err != nil {
+				return err
+			}
+
 		case code.OpDivide:
-			right := vm.pop()
-			left := vm.pop()
-			rightVal := right.(*object.Number).Value
-			leftVal := left.(*object.Number).Value
+			err := vm.executeNumericalBinop(func(left, right *object.Number) {
+				vm.push(&object.Number{Value: left.Value / right.Value})
+			})
 
-			total := &object.Number{Value: leftVal / rightVal}
-			vm.push(total)
+			if err != nil {
+				return err
+			}
+
 
 		case code.OpEqual, code.OpNotEqual, code.OpLess, code.OpLessEqual, code.OpGreater, code.OpGreaterEqual:
 			err := vm.executeComparison(op)

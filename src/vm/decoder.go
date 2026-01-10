@@ -16,6 +16,22 @@ func readUint32(buf *bytes.Reader) (uint32, error) {
 	return val, err
 }
 
+func readString(buf *bytes.Reader) (string, error) {
+	// Get string length
+	length, err := readUint32(buf)
+	if err != nil {
+		return "", err
+	}
+
+	// Allocate bytes based on string length
+	strBytes := make([]byte, length)
+	if _, err := buf.Read(strBytes); err != nil {
+		return "", err
+	}
+
+	return string(strBytes), nil
+}
+
 func readFloat64(buf *bytes.Reader) (float64, error) {
 	var val float64
 	err := binary.Read(buf, binary.BigEndian, &val)
@@ -64,6 +80,13 @@ func DecodeBytecode(data []byte) (*compiler.Bytecode, error) {
 				return nil, err
 			}
 			constants = append(constants, &object.Number{Value: num})
+		case byte(code.CONSTANT_STRING):
+			str, err := readString(buf)
+			if err != nil {
+				return nil, err
+			}
+			constants = append(constants, &object.String{Value: str})
+
 		default:
 			return nil, fmt.Errorf("unknown constant tag: %d", tag)
 		}

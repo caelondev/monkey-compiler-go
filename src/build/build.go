@@ -123,11 +123,10 @@ func DisassembleFile(path string) error {
 	for idx, c := range bytecode.Constants {
 		switch v := c.(type) {
 		case *object.Number:
-			fmt.Printf("%d: %f\n", idx, v.Value)
-		case *object.Boolean:
-			fmt.Printf("%d: %v\n", idx, v.Value)
-		case *object.Nil:
-			fmt.Printf("%d: nil\n", idx)
+			fmt.Printf("%d: %g\n", idx, v.Value)
+		case *object.String:
+			fmt.Printf("%d: \"%s\"\n", idx, v.Value)
+
 		default:
 			fmt.Printf("%d: unknown constant type %T\n", idx, c)
 		}
