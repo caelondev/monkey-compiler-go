@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/caelondev/monkey-compiler-go/src/ast"
 	"github.com/caelondev/monkey-compiler-go/src/code"
@@ -298,6 +299,46 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.emit(code.OpArray, len(node.Elements))
+
+	case *ast.HashLiteral:
+		var keys []ast.Expression
+		for key := range node.Pairs {
+			keys = append(keys, key)
+		}
+
+		// NOTE: This line ensures the keys are sorted
+		// since Go maps are unordered
+		// Implementing this on other language mighy not require
+		// the sorting below
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i].String() < keys[j].String()
+		})
+
+		for _, key := range keys {
+			// Compile key
+			err := c.Compile(key)
+			if err != nil {
+				return err
+			}
+
+			// Compile value
+			err = c.Compile(node.Pairs[key])
+			if err != nil {
+				return err
+			}
+		}
+
+		// *2 to include key ---
+		c.emit(code.OpHash, len(node.Pairs)*2)
+
+	case *ast.IndexExpression:
+		err := c.Compile(node.Target)
+		if err != nil {
+			return err
+		}
+
+		err = c.Compile(node.Index)
+		c.emit(code.OpIndex)
 
 	default:
 		return fmt.Errorf("Unknown AST node: '%s' (%T)", node.String(), node)

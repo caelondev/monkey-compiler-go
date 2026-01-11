@@ -187,21 +187,48 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpArray:
-			arrayLength := code.ReadUint16(vm.instructions[instPointer+1:])
-			instPointer += 2 // Skip length bytes
+			arrayLength := int(code.ReadUint16(vm.instructions[instPointer+1:]))
+			instPointer += 2 // Advance past array length
 
 			elements := make([]object.Object, arrayLength)
-			for i := int(arrayLength) - 1; i >= 0; i-- {
-				elements[i] = vm.pop()
+
+			sp := vm.stackPointer
+			for i := 0; i < arrayLength; i++ {
+				elements[i] = vm.stack[sp-arrayLength+i]
 			}
+
+			// adjust stack pointer
+			vm.drop(arrayLength)
 
 			err := vm.push(&object.Array{Elements: elements})
 			if err != nil {
 				return err
 			}
 
+		case code.OpHash:
+			hashSize := int(code.ReadUint16(vm.instructions[instPointer+1:]))
+			instPointer += 2 // Advance past hash size
+
+			hashPairs := make(map[object.HashKey]object.HashPair)
+
+			for i := vm.stackPointer - hashSize; i < vm.stackPointer; i += 2 {
+				key := vm.stack[i]
+				value := vm.stack[i+1]
+
+				pair := object.HashPair{Key: key, Value: value}
+				hashKey, hashable := key.(object.Hashable)
+				if !hashable {
+					return fmt.Errorf("Cannot use key type of '%s' in a hash map", key.Type())
+				}
+
+				hashPairs[hashKey.HashKey()] = pair
+			}
+
+			vm.drop(hashSize)
+			vm.push(&object.Hash{Pairs: hashPairs})
+
 		case code.OpPop:
-			vm.pop()
+			vm.drop(1)
 		}
 	}
 
@@ -231,6 +258,11 @@ func (vm *VM) pop() object.Object {
 	vm.stackPointer--
 	return obj
 }
+
+func (vm *VM) drop(n int) {
+	vm.stackPointer -= n
+}
+
 func (vm *VM) LastPoppedElement() object.Object {
 	return vm.stack[vm.stackPointer]
 }

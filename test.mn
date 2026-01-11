@@ -1,3 +1,6 @@
-var x = "hello world";
+var hash = {
+  "name": "Theophilus",
+  "age": 15,
+};
 
-x{2~3}
+hash;

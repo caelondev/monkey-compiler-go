@@ -286,7 +286,7 @@ func (p *Parser) parseAssignmentExpression(left ast.Expression) ast.Expression {
 			Target: leftExpr.Target, // Take Index Expr's array target
 			Index:  leftExpr.Index,
 		}
-		p.nextToken()
+		p.nextToken() // Eat =
 		expr.NewValue = p.parseExpression(ASSIGNMENT + 1)
 
 		if expr.NewValue == nil {
@@ -311,13 +311,9 @@ func (p *Parser) parseAssignmentExpression(left ast.Expression) ast.Expression {
 func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 	expr := &ast.IndexExpression{Token: p.currentToken, Target: left}
 
-	p.nextToken() // Eat [ ---
+	p.nextToken() // Eat : ---
 
 	expr.Index = p.parseExpression(LOWEST)
-
-	if !p.expectPeek(token.RIGHT_BRACKET) {
-		return nil
-	}
 
 	return expr
 }

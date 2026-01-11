@@ -398,9 +398,8 @@ func (n *IndexExpression) String() string {
 	var out bytes.Buffer
 
 	out.WriteString(n.Target.String())
-	out.WriteString("[")
+	out.WriteString(":")
 	out.WriteString(n.Index.String())
-	out.WriteString("]")
 
 	return out.String()
 }
@@ -428,9 +427,9 @@ func (n *IndexAssignmentExpression) String() string {
 	var out bytes.Buffer
 
 	out.WriteString(n.Target.String())
-	out.WriteString("[")
+	out.WriteString(":")
 	out.WriteString(n.Index.String())
-	out.WriteString("] = ")
+	out.WriteString(" = ")
 	out.WriteString(n.NewValue.String())
 
 	return out.String()
