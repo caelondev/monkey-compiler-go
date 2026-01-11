@@ -1,6 +1,3 @@
-var hash = {
-  "name": "Theophilus",
-  "known_languages": ["Rust", "JavaScript", "TypeScript", "Go", "C"],
-};
+var func = fn() {return 10+10;};
 
-hash::"known_languages"::3; // Last popped value = "Go"
+

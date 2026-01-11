@@ -88,6 +88,18 @@ func DecodeBytecode(data []byte) (*compiler.Bytecode, error) {
 				return nil, err
 			}
 			constants = append(constants, &object.String{Value: str})
+		case byte(code.CONSTANT_FUNCTION):
+			instLen, err := readUint32(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			instBuf := make([]byte, instLen)
+			_, err = buf.Read(instBuf)
+			if err != nil {
+				return nil, err
+			}
+			constants = append(constants, &object.CompiledFunction{Instructions: instBuf})
 
 		default:
 			return nil, fmt.Errorf("unknown constant tag: %d", tag)

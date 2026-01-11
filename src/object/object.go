@@ -7,22 +7,24 @@ import (
 	"strings"
 
 	"github.com/caelondev/monkey-compiler-go/src/ast"
+	"github.com/caelondev/monkey-compiler-go/src/code"
 )
 
 type ObjectType string
 
 const (
-	NUMBER_OBJECT       = "NUMBER"
-	STRING_OBJECT       = "STRING"
-	ARRAY_OBJECT        = "ARRAY"
-	BOOLEAN_OBJECT      = "BOOLEAN"
-	NIL_OBJECT          = "NIL"
-	NAN_OBJECT          = "NAN"
-	INFINITY_OBJECT     = "INFINITY"
-	RETURN_VALUE_OBJECT = "RETURN_VALUE"
-	ERROR_OBJECT        = "ERROR"
-	FUNCTION_OBJECT     = "FUNCTION"
-	HASH_OBJECT         = "HASH"
+	NUMBER_OBJECT            = "NUMBER"
+	STRING_OBJECT            = "STRING"
+	ARRAY_OBJECT             = "ARRAY"
+	BOOLEAN_OBJECT           = "BOOLEAN"
+	NIL_OBJECT               = "NIL"
+	NAN_OBJECT               = "NAN"
+	INFINITY_OBJECT          = "INFINITY"
+	RETURN_VALUE_OBJECT      = "RETURN_VALUE"
+	ERROR_OBJECT             = "ERROR"
+	FUNCTION_OBJECT          = "FUNCTION"
+	HASH_OBJECT              = "HASH"
+	COMPILED_FUNCTION_OBJECT = "COMPILED_FUNCTION"
 )
 
 var (
@@ -261,4 +263,16 @@ func (o *Array) Inspect() string {
 	out.WriteString("]")
 
 	return out.String()
+}
+
+type CompiledFunction struct {
+	Instructions code.Instructions // []bytes
+}
+
+func (o *CompiledFunction) Type() ObjectType {
+	return COMPILED_FUNCTION_OBJECT
+}
+
+func (o *CompiledFunction) Inspect() string {
+	return "[ Compiled Function ]"
 }

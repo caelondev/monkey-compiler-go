@@ -35,6 +35,11 @@ func serializeConstants(constants []object.Object) []byte {
 		case *object.String:
 			buf.WriteByte(byte(code.CONSTANT_STRING))
 			writeString(buf, obj.Value)
+		case *object.CompiledFunction:
+			buf.WriteByte(byte(code.CONSTANT_FUNCTION))
+			// length
+			writeUint32(buf, uint32(len(obj.Instructions)))
+			buf.Write(obj.Instructions)
 
 		default:
 			panic("unsupported constant type")

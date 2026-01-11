@@ -47,7 +47,7 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		comp.Disassemble()
+		compiler.DisassembleBytecode(comp.Bytecode())
 
 		vm := vm.NewWithGlobalStore(comp.Bytecode(), globals)
 		err = vm.Run()

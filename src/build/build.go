@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/caelondev/monkey-compiler-go/src/code"
 	"github.com/caelondev/monkey-compiler-go/src/compiler"
 	"github.com/caelondev/monkey-compiler-go/src/lexer"
 	"github.com/caelondev/monkey-compiler-go/src/object"
@@ -90,47 +89,7 @@ func DisassembleFile(path string) error {
 		return err
 	}
 
-	fmt.Println("== Disassembler ==")
-	instructions := bytecode.Instructions
-	i := 0
-	for i < len(instructions) {
-		op := instructions[i]
-		def, err := code.Lookup(code.OpCode(op))
-		if err != nil {
-			fmt.Printf("%04d UNKNOWN OPCODE %d\n", i, op)
-			i++
-			continue
-		}
-
-		fmt.Printf("%04d %s", i, def.Name)
-		i++
-
-		// read operands
-		for _, width := range def.OperandWidths {
-			if width == 2 {
-				val := int(instructions[i])<<8 | int(instructions[i+1])
-				fmt.Printf(" [%d]", val)
-				i += 2
-			} else {
-				fmt.Printf(" [unsupported operand width %d]", width)
-			}
-		}
-		fmt.Println()
-	}
-
-	// print constants
-	fmt.Println("\nConstants:")
-	for idx, c := range bytecode.Constants {
-		switch v := c.(type) {
-		case *object.Number:
-			fmt.Printf("%d: %g\n", idx, v.Value)
-		case *object.String:
-			fmt.Printf("%d: \"%s\"\n", idx, v.Value)
-
-		default:
-			fmt.Printf("%d: unknown constant type %T\n", idx, c)
-		}
-	}
+	compiler.DisassembleBytecode(bytecode)
 
 	return nil
 }

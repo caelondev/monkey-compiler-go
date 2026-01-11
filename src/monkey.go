@@ -29,7 +29,10 @@ func Main() {
 	}
 
 	if *disassembleFlag != "" {
-		build.DisassembleFile(*disassembleFlag)
+		err := build.DisassembleFile(*disassembleFlag)
+		if err != nil {
+			fmt.Println(err)
+		}
 		return
 	}
 

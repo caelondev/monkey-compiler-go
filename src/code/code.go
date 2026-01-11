@@ -16,9 +16,11 @@ const (
 	OpNil
 	OpArray
 	OpHash
+	OpReturnValue
 
 	OpSlice
 	OpIndex
+	OpCall
 
 	OpAdd
 	OpSubtract
@@ -59,8 +61,10 @@ var definitions = map[OpCode]*Definition{
 	OpSetGlobal:     {"OpSetGlobal", []int{2}},
 	OpArray:         {"OpArray", []int{2}},
 	OpHash:          {"OpHash", []int{2}},
+	OpReturnValue:   {"OpReturnValue", []int{}},
 	OpSlice:         {"OpSlice", []int{}},
 	OpIndex:         {"OpIndex", []int{}},
+	OpCall:          {"OpCall", []int{}},
 	OpAdd:           {"OpAdd", []int{}},
 	OpNil:           {"OpNil", []int{}},
 	OpFalse:         {"OpFalse", []int{}},
