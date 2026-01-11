@@ -47,6 +47,8 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
+		constants = comp.Bytecode().Constants
+
 		compiler.DisassembleBytecode(comp.Bytecode())
 
 		vm := vm.NewWithGlobalStore(comp.Bytecode(), globals)

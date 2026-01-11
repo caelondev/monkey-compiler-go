@@ -403,6 +403,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 		c.emit(code.OpSetGlobal, symbol.Index)
 
+	case *ast.CallExpression:
+		err := c.Compile(node.Function)
+		if err != nil {
+			return err
+		}
+
+		c.emit(code.OpCall)
+
 	default:
 		return fmt.Errorf("Unknown AST node: '%s' (%T)", node.String(), node)
 	}

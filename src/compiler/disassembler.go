@@ -62,9 +62,9 @@ func DisassembleConstants(constants []object.Object) {
 			fmt.Printf("%d: \"%s\"\n", idx, v.Value)
 		case *object.CompiledFunction:
 			fmt.Println()
-			fmt.Printf("%d: --- StartCompiled Function ---\n", idx)
+			fmt.Printf("%d: --- Start Compile Function ---\n", idx)
 			DisassembleInstruction(v.Instructions)
-			fmt.Printf("%d: --- EndCompile Function ---", idx)
+			fmt.Printf("%d: --- End Compile Function ---", idx)
 			fmt.Println()
 
 		default:

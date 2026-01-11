@@ -8,13 +8,20 @@ import (
 )
 
 func New(bytecode *compiler.Bytecode) *VM {
-	return &VM{
-		instructions: bytecode.Instructions,
-		constants:    bytecode.Constants,
+	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
+	mainFrame := NewFrame(mainFn)
 
+	frames := make([]*Frame, FRAME_SIZE)
+	frames[0] = mainFrame
+
+	return &VM{
+		constants: bytecode.Constants,
+
+		frames:       frames,
 		stack:        make([]object.Object, STACK_SIZE),
 		globals:      make([]object.Object, GLOBAL_SIZE),
 		stackPointer: 0,
+		frameIndex:   1,
 	}
 }
 
@@ -37,10 +44,8 @@ func NewFromFile(path string) (*VM, error) {
 
 	return &VM{
 		constants:    bytecode.Constants,
-		instructions: bytecode.Instructions,
 		stack:        make([]object.Object, STACK_SIZE),
 		globals:      make([]object.Object, GLOBAL_SIZE),
 		stackPointer: 0,
 	}, nil
 }
-
