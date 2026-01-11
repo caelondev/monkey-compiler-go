@@ -29,6 +29,7 @@ const (
 	CARET      = "^"
 	PIPE       = "|"
 	TILDE      = "~"
+	BOX_COLON  = "::"
 
 	LESS          = "<"
 	GREATER       = ">"

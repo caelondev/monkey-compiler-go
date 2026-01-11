@@ -1,6 +1,6 @@
 var hash = {
   "name": "Theophilus",
-  "age": 15,
+  "known_languages": ["Rust", "JavaScript", "TypeScript", "Go", "C"],
 };
 
-hash;
+hash::"known_languages"::3; // Last popped value = "Go"

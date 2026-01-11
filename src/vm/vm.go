@@ -227,6 +227,15 @@ func (vm *VM) Run() error {
 			vm.drop(hashSize)
 			vm.push(&object.Hash{Pairs: hashPairs})
 
+		case code.OpIndex:
+			index := vm.pop()
+			target := vm.pop()
+
+			err := vm.executeIndexExpression(target, index)
+			if err != nil {
+				return err
+			}
+
 		case code.OpPop:
 			vm.drop(1)
 		}

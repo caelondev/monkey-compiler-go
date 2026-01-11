@@ -311,9 +311,10 @@ func (p *Parser) parseAssignmentExpression(left ast.Expression) ast.Expression {
 func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 	expr := &ast.IndexExpression{Token: p.currentToken, Target: left}
 
-	p.nextToken() // Eat : ---
+	pre := p.currentPrecedence()
+	p.nextToken() // Eat :: ---
 
-	expr.Index = p.parseExpression(LOWEST)
+	expr.Index = p.parseExpression(pre)
 
 	return expr
 }

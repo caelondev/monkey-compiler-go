@@ -75,7 +75,12 @@ func (l *Lexer) NextToken() token.Token {
 		tok = l.newCompound(token.GREATER, token.GREATER_EQUAL, startLine, startColumn)
 		l.readChar()
 	case ':':
-		tok = l.newTokenWithPos(token.COLON, l.currentChar, startLine, startColumn)
+		if l.peekChar() != ':' {
+			tok = l.newTokenWithPos(token.COLON, l.currentChar, startLine, startColumn)
+		} else {
+			tok = l.newTokenWithPos(token.BOX_COLON, l.currentChar, startLine, startColumn)
+			l.readChar()
+		}
 		l.readChar()
 	case ',':
 		tok = l.newTokenWithPos(token.COMMA, l.currentChar, startLine, startColumn)
