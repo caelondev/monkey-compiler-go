@@ -264,7 +264,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 			symbol, error := c.symbolTable.Define(name.Value)
 			if error {
-				return fmt.Errorf("Cannot redeclare already existing variable '%s'", name.Value)
+				return fmt.Errorf("Cannot redeclare already existing Identifier '%s'", name.Value)
 			}
 
 			c.emit(code.OpSetGlobal, symbol.Index)
@@ -384,6 +384,24 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.emit(code.OpReturnValue)
+
+	case *ast.FunctionDeclarationStatement:
+		c.enterScope()
+		err := c.Compile(node.Body)
+		if err != nil {
+			return err
+		}
+
+		instructions := c.leaveScope()
+		compiledFn := &object.CompiledFunction{Instructions: instructions}
+		c.emit(code.OpConstant, c.addConstant(compiledFn))
+
+		// Store as variable constant
+		symbol, error := c.symbolTable.Define(node.Name.Value)
+		if error {
+			return fmt.Errorf("Cannot redeclare already existing Identifier '%s'", node.Name.Value)
+		}
+		c.emit(code.OpSetGlobal, symbol.Index)
 
 	default:
 		return fmt.Errorf("Unknown AST node: '%s' (%T)", node.String(), node)

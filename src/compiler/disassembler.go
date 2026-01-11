@@ -48,6 +48,12 @@ func DisassembleInstruction(instructions code.Instructions) {
 
 func DisassembleConstants(constants []object.Object) {
 	fmt.Println("Constants:")
+
+	if len(constants) == 0 {
+		fmt.Printf("No constants found")
+		return
+	}
+
 	for idx, cn := range constants {
 		switch v := cn.(type) {
 		case *object.Number:
