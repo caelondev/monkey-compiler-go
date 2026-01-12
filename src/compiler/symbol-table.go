@@ -63,6 +63,15 @@ func (s *SymbolTable) Define(name string) (Symbol, error) {
 	return symbol, nil
 }
 
+func (s *SymbolTable) Reassign(name string) (Symbol, error) {
+	symbol, err := s.Resolve(name)
+	if err != nil {
+		return Symbol{}, fmt.Errorf("Cannot reassign undefined variable '%s'", name)
+	}
+
+	return symbol, nil
+}
+
 func (s *SymbolTable) Resolve(name string) (Symbol, error) {
 	symbol, exists := s.store[name]
 

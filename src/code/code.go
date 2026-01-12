@@ -46,6 +46,7 @@ const (
 	OpGetGlobal
 	OpSetLocal
 	OpGetLocal
+	OpSetIndex
 
 	OpPop
 )
@@ -66,6 +67,7 @@ var definitions = map[OpCode]*Definition{
 	OpArray:         {"OpArray", []int{2}},
 	OpHash:          {"OpHash", []int{2}},
 	OpCall:          {"OpCall", []int{1}},
+	OpSetIndex:      {"OpSetIndex", []int{}},
 	OpReturnValue:   {"OpReturnValue", []int{}},
 	OpSlice:         {"OpSlice", []int{}},
 	OpIndex:         {"OpIndex", []int{}},

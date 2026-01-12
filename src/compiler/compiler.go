@@ -77,7 +77,12 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
-		c.emit(code.OpPop)
+		switch node.Expression.(type) {
+		case *ast.AssignmentExpression:
+		case *ast.IndexAssignmentExpression:
+		default:
+			c.emit(code.OpPop)
+		}
 
 	case *ast.BooleanExpression:
 		var bool code.OpCode
@@ -277,6 +282,57 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.emitGetToScope(symbol)
+
+	case *ast.AssignmentExpression:
+		err := c.Compile(node.NewValue)
+		if err != nil {
+			return err
+		}
+
+		assignee, ok := node.Assignee.(*ast.Identifier)
+		if !ok {
+			return fmt.Errorf("Cannot ra-assign invalid left-hand expression")
+		}
+
+		symbol, err := c.symbolTable.Reassign(assignee.Value)
+		if err != nil {
+			return err
+		}
+
+		c.emitSetToScope(symbol)
+
+	case *ast.BatchAssignmentStatement:
+		for _, assignee := range node.Assignees {
+			err := c.Compile(node.NewValue)
+			if err != nil {
+				return err
+			}
+
+			symbol, err := c.symbolTable.Reassign(assignee.Value)
+			if err != nil {
+				return err
+			}
+
+			c.emitSetToScope(symbol)
+		}
+
+	case *ast.IndexAssignmentExpression:
+		err := c.Compile(node.Target)
+		if err != nil {
+			return err
+		}
+
+		err = c.Compile(node.Index)
+		if err != nil {
+			return err
+		}
+
+		err = c.Compile(node.NewValue)
+		if err != nil {
+			return err
+		}
+
+		c.emit(code.OpSetIndex)
 
 	case *ast.IndexSliceExpression:
 		err := c.Compile(node.Target)

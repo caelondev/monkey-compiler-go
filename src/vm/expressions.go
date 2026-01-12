@@ -128,6 +128,7 @@ func (vm *VM) executeHashIndexExpression(target *object.Hash, index object.Objec
 
 	accessedElement, ok := target.Pairs[hashKey.HashKey()]
 	if !ok {
+
 		vm.push(object.NIL)
 		return nil
 	}
@@ -153,4 +154,47 @@ func nativeBoolToBooleanObject(b bool) *object.Boolean {
 	}
 
 	return object.FALSE
+}
+
+func (vm *VM) executeIndexAssignment(target, index, newVal object.Object) error {
+	switch {
+	case target.Type() == object.ARRAY_OBJECT && index.Type() == object.NUMBER_OBJECT:
+		return vm.executeArrayIndexAssignment(target.(*object.Array), index.(*object.Number), newVal)
+	case target.Type() == object.HASH_OBJECT:
+		return vm.executeHashIndexAssignment(target.(*object.Hash), index, newVal)
+	}
+
+	return fmt.Errorf("Cannot index expression type '%s' with index type '%s'", target.Type(), index.Type())
+}
+
+func (vm *VM) executeArrayIndexAssignment(target *object.Array, index *object.Number, newVal object.Object) error {
+	i := int(index.Value)
+
+	if i < 0 || i > len(target.Elements)-1 {
+		return fmt.Errorf("Cannot access array at index [%d] as it is out-of-bounds", i)
+	}
+
+	target.Elements[i] = newVal
+	err := vm.push(newVal)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (vm *VM) executeHashIndexAssignment(target *object.Hash, index, newVal object.Object) error {
+	hashKey, ok := index.(object.Hashable)
+	if !ok {
+		return fmt.Errorf("Cannot access hashmap key type '%s'", index.Type())
+	}
+
+	pair := object.HashPair{Key: index, Value: newVal}
+	target.Pairs[hashKey.HashKey()] = pair
+	err := vm.push(newVal)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

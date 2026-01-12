@@ -181,6 +181,16 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpSetIndex:
+			newVal := vm.pop()
+			index := vm.pop()
+			target := vm.pop()
+
+			err := vm.executeIndexAssignment(target, index, newVal)
+			if err != nil {
+				return err
+			}
+
 		case code.OpSlice:
 			end := vm.pop()
 			start := vm.pop()
