@@ -1,9 +1,12 @@
 package compiler
 
+import "fmt"
+
 type SymbolScope string
 
 const (
 	GlobalScope SymbolScope = "GLOBAL"
+	LocalScope  SymbolScope = "LOCAL"
 )
 
 type Symbol struct {
@@ -13,30 +16,63 @@ type Symbol struct {
 }
 
 type SymbolTable struct {
+	Outer *SymbolTable
+
 	store          map[string]Symbol
 	numDefinitions int
 }
 
 func NewSymbolTable() *SymbolTable {
 	return &SymbolTable{
-		store: make(map[string]Symbol),
+		Outer: nil,
+
+		store:          make(map[string]Symbol),
+		numDefinitions: 0,
 	}
 }
 
-func (s *SymbolTable) Define(name string) (Symbol, bool) {
-	_, exists := s.Resolve(name)
-	if exists {
-		return Symbol{}, exists
+func NewEnclosedSymbolTable(outer *SymbolTable) *SymbolTable {
+	return &SymbolTable{
+		Outer:          outer,
+		store:          make(map[string]Symbol),
+		numDefinitions: 0,
+	}
+}
+
+func (s *SymbolTable) Define(name string) (Symbol, error) {
+	if _, exists := s.store[name]; exists {
+		return Symbol{}, fmt.Errorf(
+			"Cannot redeclare already existing Identifier '%s'", name,
+		)
 	}
 
-	symbol := Symbol{Name: name, Scope: GlobalScope, Index: s.numDefinitions}
+	symbol := Symbol{
+		Name:  name,
+		Index: s.numDefinitions,
+	}
+
+	if s.Outer == nil {
+		symbol.Scope = GlobalScope
+	} else {
+		symbol.Scope = LocalScope
+	}
+
 	s.store[name] = symbol
 	s.numDefinitions++
-	return symbol, false
+
+	return symbol, nil
 }
 
-
-func (s *SymbolTable) Resolve(name string) (Symbol, bool) {
+func (s *SymbolTable) Resolve(name string) (Symbol, error) {
 	symbol, exists := s.store[name]
-	return symbol, exists
+
+	if !exists {
+		if s.Outer == nil {
+			return Symbol{}, fmt.Errorf("Cannot resolve Identifier '%s' as it is undefined", name)
+		} else {
+			return s.Outer.Resolve(name)
+		}
+	}
+
+	return symbol, nil
 }

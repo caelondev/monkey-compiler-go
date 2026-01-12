@@ -262,21 +262,21 @@ func (c *Compiler) Compile(node ast.Node) error {
 				return err
 			}
 
-			symbol, error := c.symbolTable.Define(name.Value)
-			if error {
-				return fmt.Errorf("Cannot redeclare already existing Identifier '%s'", name.Value)
+			symbol, err := c.symbolTable.Define(name.Value)
+			if err != nil {
+				return err
 			}
 
-			c.emit(code.OpSetGlobal, symbol.Index)
+			c.emitSetToScope(symbol)
 		}
 
 	case *ast.Identifier:
-		symbol, exists := c.symbolTable.Resolve(node.Value)
-		if !exists {
-			return fmt.Errorf("Cannot resolve variable '%s'", node.Value)
+		symbol, err := c.symbolTable.Resolve(node.Value)
+		if err != nil {
+			return err
 		}
 
-		c.emit(code.OpGetGlobal, symbol.Index)
+		c.emitGetToScope(symbol)
 
 	case *ast.IndexSliceExpression:
 		err := c.Compile(node.Target)
@@ -361,6 +361,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 	case *ast.FunctionLiteral:
 		c.enterScope()
 
+		for _, param := range node.Parameters {
+			c.symbolTable.Define(param.Value)
+		}
+
 		err := c.Compile(node.Body)
 		if err != nil {
 			return err
@@ -372,9 +376,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpReturnValue)
 		}
 
+		numLocals := c.symbolTable.numDefinitions
 		instructions := c.leaveScope()
 
-		compiledFn := &object.CompiledFunction{Instructions: instructions}
+		compiledFn := &object.CompiledFunction{Instructions: instructions, NumLocals: numLocals, NumParameters: len(node.Parameters)}
 		c.emit(code.OpConstant, c.addConstant(compiledFn))
 
 	case *ast.ReturnStatement:
@@ -386,22 +391,36 @@ func (c *Compiler) Compile(node ast.Node) error {
 		c.emit(code.OpReturnValue)
 
 	case *ast.FunctionDeclarationStatement:
-		c.enterScope()
-		err := c.Compile(node.Body)
+		// Define function
+		symbol, err := c.symbolTable.Define(node.Name.Value)
 		if err != nil {
 			return err
 		}
 
+		c.enterScope()
+
+		for _, param := range node.Parameters {
+			c.symbolTable.Define(param.Value)
+		}
+
+		err = c.Compile(node.Body)
+		if err != nil {
+			return err
+		}
+
+		// Implicit nil return
+		if !c.lastInstructionIs(code.OpReturnValue) {
+			c.emit(code.OpNil)
+			c.emit(code.OpReturnValue)
+		}
+
+		numLocals := c.symbolTable.numDefinitions
 		instructions := c.leaveScope()
-		compiledFn := &object.CompiledFunction{Instructions: instructions}
+
+		compiledFn := &object.CompiledFunction{Instructions: instructions, NumLocals: numLocals, NumParameters: len(node.Parameters)}
 		c.emit(code.OpConstant, c.addConstant(compiledFn))
 
-		// Store as variable constant
-		symbol, error := c.symbolTable.Define(node.Name.Value)
-		if error {
-			return fmt.Errorf("Cannot redeclare already existing Identifier '%s'", node.Name.Value)
-		}
-		c.emit(code.OpSetGlobal, symbol.Index)
+		c.emitSetToScope(symbol)
 
 	case *ast.CallExpression:
 		err := c.Compile(node.Function)
@@ -409,7 +428,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
-		c.emit(code.OpCall)
+		for _, arg := range node.Arguments {
+			err := c.Compile(arg)
+			if err != nil {
+				return err
+			}
+		}
+
+		c.emit(code.OpCall, len(node.Arguments))
 
 	default:
 		return fmt.Errorf("Unknown AST node: '%s' (%T)", node.String(), node)
@@ -487,6 +513,22 @@ func (c *Compiler) addInstruction(ins []byte) int {
 	return insPos // Return instruction "address"
 }
 
+func (c *Compiler) emitGetToScope(symbol Symbol) {
+	if symbol.Scope == GlobalScope {
+		c.emit(code.OpGetGlobal, symbol.Index)
+	} else {
+		c.emit(code.OpGetLocal, symbol.Index)
+	}
+}
+
+func (c *Compiler) emitSetToScope(symbol Symbol) {
+	if symbol.Scope == GlobalScope {
+		c.emit(code.OpSetGlobal, symbol.Index)
+	} else {
+		c.emit(code.OpSetLocal, symbol.Index)
+	}
+}
+
 func (c *Compiler) enterScope() {
 	scope := CompilationScope{
 		instructions:        make(code.Instructions, 0),
@@ -496,6 +538,8 @@ func (c *Compiler) enterScope() {
 
 	c.scopes = append(c.scopes, scope)
 	c.scopeIndex++
+
+	c.symbolTable = NewEnclosedSymbolTable(c.symbolTable)
 }
 
 func (c *Compiler) leaveScope() code.Instructions {
@@ -505,6 +549,8 @@ func (c *Compiler) leaveScope() code.Instructions {
 	c.scopes = c.scopes[:len(c.scopes)-1]
 	c.scopeIndex--
 
+	// Outer is the previous table
+	c.symbolTable = c.symbolTable.Outer
 	return inst
 }
 

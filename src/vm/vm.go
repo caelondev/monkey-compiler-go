@@ -160,6 +160,27 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpSetLocal:
+			localIndex := code.ReadUint16(inst[instPointer+1:])
+			vm.currentFrame().instructionPointer += 2
+
+			// Set local index relative to the
+			// base pointer
+			frame := vm.currentFrame()
+			vm.stack[frame.basePointer+int(localIndex)] = vm.pop()
+
+		case code.OpGetLocal:
+			localIndex := code.ReadUint16(inst[instPointer+1:])
+			vm.currentFrame().instructionPointer += 2
+
+			// Get local index relative to the
+			// base pointer
+			frame := vm.currentFrame()
+			err := vm.push(vm.stack[frame.basePointer+int(localIndex)])
+			if err != nil {
+				return err
+			}
+
 		case code.OpSlice:
 			end := vm.pop()
 			start := vm.pop()
@@ -247,20 +268,30 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpCall:
-			fn, ok := vm.stack[vm.stackPointer-1].(*object.CompiledFunction)
+			numArgs := int(code.ReadUint8(inst[instPointer+1:]))
+			vm.currentFrame().instructionPointer += 1
+
+			fn, ok := vm.stack[vm.stackPointer-numArgs-1].(*object.CompiledFunction)
 			if !ok {
 				return fmt.Errorf("Cannot call non-functiom expression")
 			}
 
-			frame := NewFrame(fn)
+			if numArgs != fn.NumParameters {
+				return fmt.Errorf("Wrong number of arguments: expected %d, got %d", fn.NumParameters, numArgs)
+			}
+
+			frame := NewFrame(fn, vm.stackPointer-numArgs)
 			vm.pushFrame(frame)
+			vm.stackPointer = frame.basePointer + fn.NumLocals
 
 		case code.OpReturnValue:
 			returnValue := vm.pop()
 
-			vm.popFrame()
-			vm.drop(0) // pop function off the stack
+			// This exits the function frame
+			frame := vm.popFrame()
 
+			// Reset stack pointer
+			vm.stackPointer = frame.basePointer - 1 // -1 for function clearing
 			err := vm.push(returnValue)
 			if err != nil {
 				return err
@@ -304,6 +335,10 @@ func (vm *VM) drop(n int) {
 
 func (vm *VM) LastPoppedElement() object.Object {
 	return vm.stack[vm.stackPointer]
+}
+
+func (vm *VM) GetStack() []object.Object {
+	return vm.stack
 }
 
 func (vm *VM) GetStackPointer() int {

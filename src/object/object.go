@@ -267,6 +267,8 @@ func (o *Array) Inspect() string {
 
 type CompiledFunction struct {
 	Instructions code.Instructions // []bytes
+	NumLocals    int
+	NumParameters int
 }
 
 func (o *CompiledFunction) Type() ObjectType {

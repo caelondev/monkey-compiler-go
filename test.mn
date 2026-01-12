@@ -1,3 +1,18 @@
-var func = fn() {return 10+10;};
+/*
+fn fib(n, cache) {
+  if (n <= 1) {
+    return n;
+  }
 
+  var cache_res = cache::n;
 
+  if (cache_res != nil) {
+    return cache_res;
+  }
+
+  var result = fib(n-1) - fib(n-2);
+  cache_res::n = result;
+}
+
+fib(10);
+*/

@@ -76,7 +76,29 @@ func RunBytecode(path string) {
 	fmt.Println("Runtime execution duration: ", duration)
 
 	if vm.GetStackPointer() != 0 {
-		fmt.Printf("Stack is not clean, unused stack elements count: %d\n", vm.GetStackPointer())
+		fmt.Printf("Stack is not clean, unused stack elements: %d\n", vm.GetStackPointer())
+		fmt.Println()
+
+		fmt.Printf("          ")
+		fmt.Printf("---- Stack ----\n")
+		for i := vm.GetStackPointer() - 1; i >= 0; i-- {
+			element := vm.GetStack()[i]
+			content := element.Inspect()
+
+			// Print "address"
+			fmt.Printf("%d: ", i)
+
+			// Center the content in 25 character width
+			totalWidth := 25
+			contentLen := len(content)
+			if contentLen < totalWidth {
+				leftPad := (totalWidth - contentLen) / 2
+				rightPad := totalWidth - contentLen - leftPad
+				fmt.Printf("[ %*s%s%*s ]\n", leftPad, "", content, rightPad, "")
+			} else {
+				fmt.Printf("[ %s ]\n", content)
+			}
+		}
 	} else {
 		fmt.Println("Stack is clean, no stack leaks found")
 	}

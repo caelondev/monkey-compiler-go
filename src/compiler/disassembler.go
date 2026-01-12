@@ -30,6 +30,9 @@ func DisassembleInstruction(instructions code.Instructions) {
 		operands := make([]int, len(def.OperandWidths))
 		for j, width := range def.OperandWidths {
 			switch width {
+			case 1:
+				operands[j] = int(instructions[i])
+				i++
 			case 2:
 				operands[j] = int(code.ReadUint16(instructions[i:]))
 				i += 2
@@ -64,7 +67,7 @@ func DisassembleConstants(constants []object.Object) {
 			fmt.Println()
 			fmt.Printf("%d: --- Start Compile Function ---\n", idx)
 			DisassembleInstruction(v.Instructions)
-			fmt.Printf("%d: --- End Compile Function ---", idx)
+			fmt.Printf("%d: --- End Compile Function ---\n", idx)
 			fmt.Println()
 
 		default:

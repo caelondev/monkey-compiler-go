@@ -9,7 +9,7 @@ import (
 
 func New(bytecode *compiler.Bytecode) *VM {
 	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
-	mainFrame := NewFrame(mainFn)
+	mainFrame := NewFrame(mainFn, 0)
 
 	frames := make([]*Frame, FRAME_SIZE)
 	frames[0] = mainFrame
@@ -42,10 +42,19 @@ func NewFromFile(path string) (*VM, error) {
 		return nil, err
 	}
 
+	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
+	mainFrame := NewFrame(mainFn, 0)
+
+	frames := make([]*Frame, FRAME_SIZE)
+	frames[0] = mainFrame
+
 	return &VM{
-		constants:    bytecode.Constants,
+		constants: bytecode.Constants,
+
+		frames:       frames,
 		stack:        make([]object.Object, STACK_SIZE),
 		globals:      make([]object.Object, GLOBAL_SIZE),
 		stackPointer: 0,
+		frameIndex:   1,
 	}, nil
 }
