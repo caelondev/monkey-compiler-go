@@ -35,6 +35,7 @@ func (vm *VM) Run() error {
 
 		switch op {
 		case code.OpConstant:
+			// OpConstant <constIndex:2>
 			constIndex := code.ReadUint16(inst[instPointer+1:])
 			vm.currentFrame().instructionPointer += 2
 
@@ -46,54 +47,63 @@ func (vm *VM) Run() error {
 		// NOTE: We could one-line the cases here ---
 		// but for readability, i guess this is fine ---
 		case code.OpExponent:
+			// OpExponent
 			err := vm.executeBinop(op)
 			if err != nil {
 				return err
 			}
 
 		case code.OpAdd:
+			// OpAdd
 			err := vm.executeBinop(op)
 			if err != nil {
 				return err
 			}
 
 		case code.OpSubtract:
+			// OpSubtract
 			err := vm.executeBinop(op)
 			if err != nil {
 				return err
 			}
 
 		case code.OpMultiply:
+			// OpMultiply
 			err := vm.executeBinop(op)
 			if err != nil {
 				return err
 			}
 
 		case code.OpDivide:
+			// OpDivide
 			err := vm.executeBinop(op)
 			if err != nil {
 				return err
 			}
 
 		case code.OpEqual, code.OpNotEqual, code.OpLess, code.OpLessEqual, code.OpGreater, code.OpGreaterEqual:
+			// Op[code]
 			err := vm.executeComparison(op)
 			if err != nil {
 				return err
 			}
 
 		case code.OpTrue:
+			// OpTrue
 			err := vm.push(object.TRUE)
 			if err != nil {
 				return err
 			}
 
 		case code.OpFalse:
+			// OpFalse
 			err := vm.push(object.FALSE)
 			if err != nil {
 				return err
 			}
 
 		case code.OpNegate:
+			// OpNegate
 			prev := vm.peekStackAddr(0)
 			num, ok := prev.(*object.Number)
 			if !ok {
@@ -103,6 +113,7 @@ func (vm *VM) Run() error {
 			vm.stack[vm.stackPointer-1] = &object.Number{Value: -num.Value}
 
 		case code.OpAbsolute:
+			// OpAbsolute
 			prev := vm.peekStackAddr(0)
 			num, ok := prev.(*object.Number)
 			if !ok {
@@ -115,6 +126,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpNot:
+			// OpNot
 			prev := vm.peekStackAddr(0)
 			var boolObj *object.Boolean
 
@@ -128,9 +140,11 @@ func (vm *VM) Run() error {
 			vm.stack[vm.stackPointer-1] = boolObj
 
 		case code.OpJump:
+			// OpJump <jumpPos:2>
 			pos := int(code.ReadUint16(inst[instPointer+1:]))
 			vm.currentFrame().instructionPointer = pos - 1
 		case code.OpJumpNotTruthy:
+			// OpJumpNotTruthy <jumpPos:2>
 			pos := int(code.ReadUint16(inst[instPointer+1:]))
 			vm.currentFrame().instructionPointer += 2
 
@@ -140,18 +154,21 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpNil:
+			// OpNil
 			err := vm.push(object.NIL)
 			if err != nil {
 				return err
 			}
 
 		case code.OpSetGlobal:
+			// OpSetGlobal <globalIndex:2>
 			globalIndex := code.ReadUint16(inst[instPointer+1:])
 			vm.currentFrame().instructionPointer += 2
 
 			vm.globals[globalIndex] = vm.pop()
 
 		case code.OpGetGlobal:
+			// OpGetGlobal <globalIndex:2>
 			globalIndex := code.ReadUint16(inst[instPointer+1:])
 			vm.currentFrame().instructionPointer += 2
 
@@ -161,6 +178,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpGetNative:
+			// OpGetNative <nativeIndex:2>
 			nativeIndex := code.ReadUint8(inst[instPointer+1:])
 			vm.currentFrame().instructionPointer += 1
 
@@ -172,6 +190,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpSetLocal:
+			// OpSetLocal <localIndex:2>
 			localIndex := code.ReadUint16(inst[instPointer+1:])
 			vm.currentFrame().instructionPointer += 2
 
@@ -181,6 +200,7 @@ func (vm *VM) Run() error {
 			vm.stack[frame.basePointer+int(localIndex)] = vm.pop()
 
 		case code.OpGetLocal:
+			// OpGetLocal <localIndex:2>
 			localIndex := code.ReadUint16(inst[instPointer+1:])
 			vm.currentFrame().instructionPointer += 2
 
@@ -193,6 +213,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpSetIndex:
+			// OpSetIndex
 			newVal := vm.pop()
 			index := vm.pop()
 			target := vm.pop()
@@ -203,6 +224,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpSlice:
+			// OpSlice
 			end := vm.pop()
 			start := vm.pop()
 			target := vm.pop()
@@ -239,6 +261,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpArray:
+			// OpArray <arrayLength:2>
 			arrayLength := int(code.ReadUint16(inst[instPointer+1:]))
 			vm.currentFrame().instructionPointer += 2 // Advance past array length
 
@@ -258,6 +281,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpHash:
+			// OpSize <hashSize:2>
 			hashSize := int(code.ReadUint16(inst[instPointer+1:]))
 			vm.currentFrame().instructionPointer += 2 // Advance past hash size
 
@@ -280,6 +304,7 @@ func (vm *VM) Run() error {
 			vm.push(&object.Hash{Pairs: hashPairs})
 
 		case code.OpIndex:
+			// OpIndex
 			index := vm.pop()
 			target := vm.pop()
 
@@ -288,7 +313,19 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpClosure:
+			// OpClosure <functionIndex:2> <numFree:1>
+			functionIndex := int(code.ReadUint16(inst[instPointer+2:]))
+			_ = int(code.ReadUint8(inst[instPointer+1:]))
+			vm.currentFrame().instructionPointer += 3
+
+			err := vm.pushClosure(functionIndex)
+			if err != nil {
+				return err
+			}
+
 		case code.OpCall:
+			// OpCall <numArgs:2>
 			numArgs := int(code.ReadUint8(inst[instPointer+1:]))
 			vm.currentFrame().instructionPointer += 1
 
@@ -298,6 +335,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpReturnValue:
+			// OpReturnValue
 			returnValue := vm.pop()
 
 			// This exits the function frame
@@ -370,6 +408,17 @@ func (vm *VM) pushFrame(frame *Frame) error {
 	vm.frames[vm.frameIndex] = frame
 	vm.frameIndex++
 	return nil
+}
+
+func (vm *VM) pushClosure(functionIndex int) error {
+	constant := vm.constants[functionIndex]
+	fn, ok := constant.(*object.CompiledFunction)
+	if !ok {
+		return fmt.Errorf("Cannot push constant type '%s' into the stack as a Closure", constant.Type())
+	}
+
+	closure := &object.Closure{Fn: fn}
+	return vm.push(closure)
 }
 
 func (vm *VM) popFrame() *Frame {

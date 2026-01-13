@@ -25,6 +25,7 @@ const (
 	FUNCTION_OBJECT          = "FUNCTION"
 	HASH_OBJECT              = "HASH"
 	COMPILED_FUNCTION_OBJECT = "COMPILED_FUNCTION"
+	CLOSURE_OBJECT           = "CLOSURE_OBJECT"
 )
 
 var (
@@ -277,6 +278,19 @@ func (o *CompiledFunction) Type() ObjectType {
 
 func (o *CompiledFunction) Inspect() string {
 	return "[ Compiled Function ]"
+}
+
+type Closure struct {
+	Fn   *CompiledFunction
+	Free []Object
+}
+
+func (o *Closure) Type() ObjectType {
+	return COMPILED_FUNCTION_OBJECT
+}
+
+func (o *Closure) Inspect() string {
+	return "[ Closure Function ]"
 }
 
 type CompiledNativeFunctionFn func([]Object) Object

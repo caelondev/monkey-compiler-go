@@ -202,23 +202,23 @@ func (vm *VM) executeHashIndexAssignment(target *object.Hash, index, newVal obje
 func (vm *VM) executeCallExpression(numArgs int) error {
 	callee := vm.stack[vm.stackPointer-numArgs-1]
 	switch callee := callee.(type) {
-	case *object.CompiledFunction:
-		return vm.executeFunctionCallExpression(callee, numArgs)
+	case *object.Closure:
+		return vm.executeClosureCallExpression(callee, numArgs)
 	case *object.CompiledNativeFunction:
 		return vm.executeNativeCallExpression(callee, numArgs)
 	}
 
-	return fmt.Errorf("Cannot call non-function expression")
+	return fmt.Errorf("Cannot call non-function expression type '%s'", callee.Type())
 }
 
-func (vm *VM) executeFunctionCallExpression(callee *object.CompiledFunction, numArgs int) error {
-	if numArgs != callee.NumParameters {
-		return fmt.Errorf("Wrong number of arguments: expected %d, got %d", callee.NumParameters, numArgs)
+func (vm *VM) executeClosureCallExpression(callee *object.Closure, numArgs int) error {
+	if numArgs != callee.Fn.NumParameters {
+		return fmt.Errorf("Wrong number of arguments: expected %d, got %d", callee.Fn.NumParameters, numArgs)
 	}
 
 	frame := NewFrame(callee, vm.stackPointer-numArgs)
 	vm.pushFrame(frame)
-	vm.stackPointer = frame.basePointer + callee.NumLocals
+	vm.stackPointer = frame.basePointer + callee.Fn.NumLocals
 
 	return nil
 }
@@ -230,6 +230,6 @@ func (vm *VM) executeNativeCallExpression(callee *object.CompiledNativeFunction,
 	result := callee.Fn(args)
 
 	// Reset stacm pointer to point at callee
-	vm.stackPointer = vm.stackPointer - 1 - numArgs
+	vm.drop(numArgs + 1)
 	return vm.push(result)
 }

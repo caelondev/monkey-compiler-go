@@ -17,6 +17,7 @@ const (
 	OpArray
 	OpHash
 	OpReturnValue
+	OpClosure
 
 	OpSlice
 	OpIndex
@@ -59,6 +60,7 @@ type Definition struct {
 }
 
 var definitions = map[OpCode]*Definition{
+	OpClosure:       {"OpClosure", []int{2, 1}},
 	OpConstant:      {"OpConstant", []int{2}},
 	OpJump:          {"OpJump", []int{2}},
 	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
@@ -136,6 +138,8 @@ func (ins Instructions) fmtInstruction(def *Definition, operands []int) string {
 		return fmt.Sprintf("%s\n", def.Name)
 	case 1:
 		return fmt.Sprintf("%s %d\n", def.Name, operands[0])
+	case 2:
+		return fmt.Sprintf("%s %d, %d\n", def.Name, operands[0], operands[1])
 	}
 
 	return fmt.Sprintf("ERROR: unhandled operandCount for %s\n", def.Name)
