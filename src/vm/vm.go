@@ -160,6 +160,17 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpGetNative:
+			nativeIndex := code.ReadUint8(inst[instPointer+1:])
+			vm.currentFrame().instructionPointer += 1
+
+			definition := object.NativeFunctions[nativeIndex]
+
+			err := vm.push(definition.NativeFn)
+			if err != nil {
+				return err
+			}
+
 		case code.OpSetLocal:
 			localIndex := code.ReadUint16(inst[instPointer+1:])
 			vm.currentFrame().instructionPointer += 2
@@ -281,18 +292,10 @@ func (vm *VM) Run() error {
 			numArgs := int(code.ReadUint8(inst[instPointer+1:]))
 			vm.currentFrame().instructionPointer += 1
 
-			fn, ok := vm.stack[vm.stackPointer-numArgs-1].(*object.CompiledFunction)
-			if !ok {
-				return fmt.Errorf("Cannot call non-functiom expression")
+			err := vm.executeCallExpression(numArgs)
+			if err != nil {
+				return err
 			}
-
-			if numArgs != fn.NumParameters {
-				return fmt.Errorf("Wrong number of arguments: expected %d, got %d", fn.NumParameters, numArgs)
-			}
-
-			frame := NewFrame(fn, vm.stackPointer-numArgs)
-			vm.pushFrame(frame)
-			vm.stackPointer = frame.basePointer + fn.NumLocals
 
 		case code.OpReturnValue:
 			returnValue := vm.pop()

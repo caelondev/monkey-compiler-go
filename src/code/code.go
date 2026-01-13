@@ -42,10 +42,12 @@ const (
 	OpJump
 	OpJumpNotTruthy
 
-	OpSetGlobal
-	OpGetGlobal
-	OpSetLocal
 	OpGetLocal
+	OpGetGlobal
+	OpGetNative
+
+	OpSetGlobal
+	OpSetLocal
 	OpSetIndex
 
 	OpPop
@@ -67,6 +69,7 @@ var definitions = map[OpCode]*Definition{
 	OpArray:         {"OpArray", []int{2}},
 	OpHash:          {"OpHash", []int{2}},
 	OpCall:          {"OpCall", []int{1}},
+	OpGetNative:     {"OpGetNative", []int{1}},
 	OpSetIndex:      {"OpSetIndex", []int{}},
 	OpReturnValue:   {"OpReturnValue", []int{}},
 	OpSlice:         {"OpSlice", []int{}},

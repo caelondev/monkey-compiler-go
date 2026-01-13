@@ -7,6 +7,7 @@ type SymbolScope string
 const (
 	GlobalScope SymbolScope = "GLOBAL"
 	LocalScope  SymbolScope = "LOCAL"
+	NativeScope SymbolScope = "NATIVE"
 )
 
 type Symbol struct {
@@ -61,6 +62,12 @@ func (s *SymbolTable) Define(name string) (Symbol, error) {
 	s.numDefinitions++
 
 	return symbol, nil
+}
+
+func (s *SymbolTable) DefineNative(index int, name string) Symbol {
+	symbol := Symbol{Name: name, Index: index, Scope: NativeScope}
+	s.store[name] = symbol
+	return symbol
 }
 
 func (s *SymbolTable) Reassign(name string) (Symbol, error) {

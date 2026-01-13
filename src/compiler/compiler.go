@@ -43,11 +43,17 @@ func New() *Compiler {
 		previousInstruction: EmittedInstruction{},
 	}
 
+	symbolTable := NewSymbolTable()
+
+	for i, fn := range object.NativeFunctions {
+		symbolTable.DefineNative(i, fn.Name)
+	}
+
 	return &Compiler{
 		constants:   make([]object.Object, 0),
 		scopes:      []CompilationScope{globalScope},
 		scopeIndex:  0,
-		symbolTable: NewSymbolTable(),
+		symbolTable: symbolTable,
 
 		lastInstruction:     EmittedInstruction{},
 		previousInstruction: EmittedInstruction{},
@@ -570,10 +576,13 @@ func (c *Compiler) addInstruction(ins []byte) int {
 }
 
 func (c *Compiler) emitGetToScope(symbol Symbol) {
-	if symbol.Scope == GlobalScope {
+	switch symbol.Scope {
+	case GlobalScope:
 		c.emit(code.OpGetGlobal, symbol.Index)
-	} else {
+	case LocalScope:
 		c.emit(code.OpGetLocal, symbol.Index)
+	case NativeScope:
+		c.emit(code.OpGetNative, symbol.Index)
 	}
 }
 

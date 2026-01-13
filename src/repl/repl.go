@@ -21,6 +21,11 @@ func Start(in io.Reader, out io.Writer) {
 	globals := make([]object.Object, vm.GLOBAL_SIZE)
 	symbolTable := compiler.NewSymbolTable()
 
+	for i, fn := range object.NativeFunctions {
+		symbolTable.DefineNative(i, fn.Name)
+	}
+
+
 	for {
 		fmt.Printf(">> ")
 		scanned := scanner.Scan()

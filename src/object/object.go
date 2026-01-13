@@ -266,8 +266,8 @@ func (o *Array) Inspect() string {
 }
 
 type CompiledFunction struct {
-	Instructions code.Instructions // []bytes
-	NumLocals    int
+	Instructions  code.Instructions // []bytes
+	NumLocals     int
 	NumParameters int
 }
 
@@ -277,4 +277,30 @@ func (o *CompiledFunction) Type() ObjectType {
 
 func (o *CompiledFunction) Inspect() string {
 	return "[ Compiled Function ]"
+}
+
+type CompiledNativeFunctionFn func([]Object) Object
+
+type CompiledNativeFunction struct {
+	Fn CompiledNativeFunctionFn
+}
+
+func (o *CompiledNativeFunction) Type() ObjectType {
+	return COMPILED_FUNCTION_OBJECT
+}
+
+func (o *CompiledNativeFunction) Inspect() string {
+	return "[ Compiled Native Function ]"
+}
+
+type CompiledError struct {
+	Message string
+}
+
+func (o *CompiledError) Type() ObjectType {
+	return ERROR_OBJECT
+}
+
+func (o *CompiledError) Inspect() string {
+	return o.Message
 }
