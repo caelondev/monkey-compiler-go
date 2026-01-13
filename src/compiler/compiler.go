@@ -192,15 +192,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 		// Emit with some bogus value
 		jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
 
+		c.enterBlockScope()
 		err = c.Compile(node.Consequence)
 		if err != nil {
 			return err
 		}
 
-		if c.lastInstructionIs(code.OpPop) {
-			c.removeLastPop()
-		}
-
+		c.leaveBlockScope()
 		if node.Alternative == nil {
 			// Reassign jump pos to the end of if stmt address
 			posAfterConsequence := len(c.currentInstructions())
@@ -208,6 +206,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		} else {
 			// Emit with some bogus value
 			jumpPos := c.emit(code.OpJump, 9999)
+			c.enterBlockScope()
 			posAfterConsequence := len(c.currentInstructions())
 			c.changeOperand(jumpNotTruthyPos, posAfterConsequence)
 
@@ -215,10 +214,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			if err != nil {
 				return err
 			}
-
-			if c.lastInstructionIs(code.OpPop) {
-				c.removeLastPop()
-			}
+			c.leaveBlockScope()
 
 			posAfterAlternative := len(c.currentInstructions())
 			c.changeOperand(jumpPos, posAfterAlternative)
@@ -604,6 +600,10 @@ func (c *Compiler) enterScope() {
 	c.scopes = append(c.scopes, scope)
 	c.scopeIndex++
 
+	c.enterBlockScope()
+}
+
+func (c *Compiler) enterBlockScope() {
 	c.symbolTable = NewEnclosedSymbolTable(c.symbolTable)
 }
 
@@ -614,9 +614,12 @@ func (c *Compiler) leaveScope() code.Instructions {
 	c.scopes = c.scopes[:len(c.scopes)-1]
 	c.scopeIndex--
 
-	// Outer is the previous table
-	c.symbolTable = c.symbolTable.Outer
+	c.leaveBlockScope()
 	return inst
+}
+
+func (c *Compiler) leaveBlockScope() {
+	c.symbolTable = c.symbolTable.Outer
 }
 
 func (c *Compiler) Bytecode() *Bytecode {

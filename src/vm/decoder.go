@@ -99,7 +99,18 @@ func DecodeBytecode(data []byte) (*compiler.Bytecode, error) {
 			if err != nil {
 				return nil, err
 			}
-			constants = append(constants, &object.CompiledFunction{Instructions: instBuf})
+
+			numLocals, err := readUint32(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			numParameters, err := readUint32(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			constants = append(constants, &object.CompiledFunction{Instructions: instBuf, NumLocals: int(numLocals), NumParameters: int(numParameters)})
 
 		default:
 			return nil, fmt.Errorf("unknown constant tag: %d", tag)

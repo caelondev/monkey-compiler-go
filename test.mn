@@ -1,18 +1,16 @@
-/*
-fn fib(n, cache) {
-  if (n <= 1) {
-    return n;
+fn ackermann(m, n) {
+  if (m == 0) {
+    return n + 1;
   }
-
-  var cache_res = cache::n;
-
-  if (cache_res != nil) {
-    return cache_res;
+  if (n == 0) {
+    return ackermann(m - 1, 1);
   }
-
-  var result = fib(n-1) - fib(n-2);
-  cache_res::n = result;
+  return ackermann(m - 1, ackermann(m, n - 1));
 }
 
-fib(10);
-*/
+var start = time();
+var result = ackermann(3, 10);
+var end = time();
+
+print("Result: " + to_string(result));
+print("Time taken: " + to_string(end - start) + " ms");

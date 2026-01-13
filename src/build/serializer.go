@@ -40,6 +40,8 @@ func serializeConstants(constants []object.Object) []byte {
 			// length
 			writeUint32(buf, uint32(len(obj.Instructions)))
 			buf.Write(obj.Instructions)
+			writeUint32(buf, uint32(obj.NumLocals))
+			writeUint32(buf, uint32(obj.NumParameters))
 
 		default:
 			panic("unsupported constant type")
