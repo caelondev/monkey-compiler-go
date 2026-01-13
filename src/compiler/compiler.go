@@ -260,16 +260,16 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 	case *ast.VarStatement:
 		for _, name := range node.Names {
-			// TODO: This operation is lowkey expensive
-			// maybe optimize this? this probably doesnt affect the
-			// runtime that much, but its better to point this one out
-			// ... Maybe recompiling is the only option???
-			err := c.Compile(node.Value)
+			symbol, err := c.symbolTable.Define(name.Value)
 			if err != nil {
 				return err
 			}
 
-			symbol, err := c.symbolTable.Define(name.Value)
+			// TODO: This operation is lowkey expensive
+			// maybe optimize this? this probably doesnt affect the
+			// runtime that much, but its better to point this one out
+			// ... Maybe recompiling is the only option???
+			err = c.Compile(node.Value)
 			if err != nil {
 				return err
 			}
@@ -419,6 +419,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 	case *ast.FunctionLiteral:
 		c.enterScope()
 
+		if node.Name != "" {
+			c.symbolTable.DefineFunction(node.Name)
+		}
+
 		for _, param := range node.Parameters {
 			c.symbolTable.Define(param.Value)
 		}
@@ -434,11 +438,21 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpReturnValue)
 		}
 
+		freeSymbols := c.symbolTable.FreeSymbols
 		numLocals := c.symbolTable.numDefinitions
 		instructions := c.leaveScope()
 
-		compiledFn := &object.CompiledFunction{Instructions: instructions, NumLocals: numLocals, NumParameters: len(node.Parameters)}
-		c.emit(code.OpClosure, c.addConstant(compiledFn), 0)
+		for _, symbol := range freeSymbols {
+			c.emitGetToScope(symbol)
+		}
+
+		compiledFn := &object.CompiledFunction{
+			Instructions:  instructions,
+			NumLocals:     numLocals,
+			NumParameters: len(node.Parameters),
+		}
+
+		c.emit(code.OpClosure, c.addConstant(compiledFn), len(freeSymbols))
 
 	case *ast.ReturnStatement:
 		err := c.Compile(node.ReturnValue)
@@ -472,11 +486,16 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpReturnValue)
 		}
 
+		freeSymbols := c.symbolTable.FreeSymbols
 		numLocals := c.symbolTable.numDefinitions
 		instructions := c.leaveScope()
 
+		for _, symbol := range freeSymbols {
+			c.emitGetToScope(symbol)
+		}
+
 		compiledFn := &object.CompiledFunction{Instructions: instructions, NumLocals: numLocals, NumParameters: len(node.Parameters)}
-		c.emit(code.OpClosure, c.addConstant(compiledFn), 0)
+		c.emit(code.OpClosure, c.addConstant(compiledFn), len(freeSymbols))
 
 		c.emitSetToScope(symbol)
 
@@ -579,6 +598,10 @@ func (c *Compiler) emitGetToScope(symbol Symbol) {
 		c.emit(code.OpGetLocal, symbol.Index)
 	case NativeScope:
 		c.emit(code.OpGetNative, symbol.Index)
+	case FreeScope:
+		c.emit(code.OpGetFree, symbol.Index)
+	case FunctionScope:
+		c.emit(code.OpCurrentClosure)
 	}
 }
 
@@ -600,11 +623,14 @@ func (c *Compiler) enterScope() {
 	c.scopes = append(c.scopes, scope)
 	c.scopeIndex++
 
-	c.enterBlockScope()
+	table := NewEnclosedSymbolTable(c.symbolTable)
+	table.isFunctionScope = true
+	c.symbolTable = table
 }
 
 func (c *Compiler) enterBlockScope() {
 	c.symbolTable = NewEnclosedSymbolTable(c.symbolTable)
+	c.symbolTable.isFunctionScope = false
 }
 
 func (c *Compiler) leaveScope() code.Instructions {

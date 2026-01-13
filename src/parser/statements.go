@@ -82,6 +82,10 @@ func (p *Parser) parseVarStatement() *ast.VarStatement {
 
 	stmt.Value = p.parseExpression(LOWEST)
 
+	if fl, ok := stmt.Value.(*ast.FunctionLiteral); ok {
+		fl.Name = stmt.Names[0].Value
+	}
+
 	if !p.expectPeek(token.SEMICOLON) {
 		return nil
 	}

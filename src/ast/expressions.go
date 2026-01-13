@@ -208,6 +208,7 @@ func (te *TernaryExpression) TokenLiteral() string {
 // ---------------- FunctionLiteral ----------------
 type FunctionLiteral struct {
 	Token      token.Token
+	Name       string // Bind by VarStatement
 	Parameters []*Identifier
 	Body       *BlockStatement
 }

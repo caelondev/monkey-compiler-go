@@ -7,7 +7,7 @@ import (
 	"github.com/caelondev/monkey-compiler-go/src/object"
 )
 
-const STACK_SIZE = 2048
+const STACK_SIZE = 10000
 const GLOBAL_SIZE = 65536
 const FRAME_SIZE = 10000 // max call depth ---
 
@@ -172,7 +172,23 @@ func (vm *VM) Run() error {
 			globalIndex := code.ReadUint16(inst[instPointer+1:])
 			vm.currentFrame().instructionPointer += 2
 
-			err := vm.push(vm.globals[globalIndex])
+			value := vm.globals[globalIndex]
+			if value == nil {
+				return fmt.Errorf("Cannot access uninitialized global identifier")
+			}
+
+			err := vm.push(value)
+			if err != nil {
+				return err
+			}
+
+		case code.OpGetFree:
+			// OpGetFree <freeIndex:1>
+			freeIndex := int(code.ReadUint8(inst[instPointer+1:]))
+			vm.currentFrame().instructionPointer += 1
+
+			cl := vm.currentFrame().closure
+			err := vm.push(cl.Free[freeIndex])
 			if err != nil {
 				return err
 			}
@@ -204,10 +220,14 @@ func (vm *VM) Run() error {
 			localIndex := code.ReadUint16(inst[instPointer+1:])
 			vm.currentFrame().instructionPointer += 2
 
-			// Get local index relative to the
-			// base pointer
 			frame := vm.currentFrame()
-			err := vm.push(vm.stack[frame.basePointer+int(localIndex)])
+			value := vm.stack[frame.basePointer+int(localIndex)]
+
+			if value == nil {
+				return fmt.Errorf("Cannot access uninitialized local identifier")
+			}
+
+			err := vm.push(value)
 			if err != nil {
 				return err
 			}
@@ -313,13 +333,20 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpCurrentClosure:
+			closure := vm.currentFrame().closure
+			err := vm.push(closure)
+			if err != nil {
+				return err
+			}
+
 		case code.OpClosure:
 			// OpClosure <functionIndex:2> <numFree:1>
-			functionIndex := int(code.ReadUint16(inst[instPointer+2:]))
-			_ = int(code.ReadUint8(inst[instPointer+1:]))
+			functionIndex := int(code.ReadUint16(inst[instPointer+1:]))
+			numFree := int(code.ReadUint8(inst[instPointer+3:]))
 			vm.currentFrame().instructionPointer += 3
 
-			err := vm.pushClosure(functionIndex)
+			err := vm.pushClosure(functionIndex, numFree)
 			if err != nil {
 				return err
 			}
@@ -410,14 +437,22 @@ func (vm *VM) pushFrame(frame *Frame) error {
 	return nil
 }
 
-func (vm *VM) pushClosure(functionIndex int) error {
+func (vm *VM) pushClosure(functionIndex, numFree int) error {
 	constant := vm.constants[functionIndex]
 	fn, ok := constant.(*object.CompiledFunction)
 	if !ok {
 		return fmt.Errorf("Cannot push constant type '%s' into the stack as a Closure", constant.Type())
 	}
 
-	closure := &object.Closure{Fn: fn}
+	free := make([]object.Object, numFree)
+
+	for i := range free {
+		free[i] = vm.stack[vm.stackPointer-numFree+i]
+	}
+
+	vm.drop(numFree)
+
+	closure := &object.Closure{Fn: fn, Free: free}
 	return vm.push(closure)
 }
 

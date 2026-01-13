@@ -17,7 +17,9 @@ const (
 	OpArray
 	OpHash
 	OpReturnValue
+
 	OpClosure
+	OpCurrentClosure
 
 	OpSlice
 	OpIndex
@@ -46,6 +48,7 @@ const (
 	OpGetLocal
 	OpGetGlobal
 	OpGetNative
+	OpGetFree
 
 	OpSetGlobal
 	OpSetLocal
@@ -60,40 +63,42 @@ type Definition struct {
 }
 
 var definitions = map[OpCode]*Definition{
-	OpClosure:       {"OpClosure", []int{2, 1}},
-	OpConstant:      {"OpConstant", []int{2}},
-	OpJump:          {"OpJump", []int{2}},
-	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
-	OpGetGlobal:     {"OpGetGlobal", []int{2}},
-	OpSetGlobal:     {"OpSetGlobal", []int{2}},
-	OpGetLocal:      {"OpGetLocal", []int{2}}, // Might be too high, most constants are just 8 bits long
-	OpSetLocal:      {"OpSetLocal", []int{2}},
-	OpArray:         {"OpArray", []int{2}},
-	OpHash:          {"OpHash", []int{2}},
-	OpCall:          {"OpCall", []int{1}},
-	OpGetNative:     {"OpGetNative", []int{1}},
-	OpSetIndex:      {"OpSetIndex", []int{}},
-	OpReturnValue:   {"OpReturnValue", []int{}},
-	OpSlice:         {"OpSlice", []int{}},
-	OpIndex:         {"OpIndex", []int{}},
-	OpAdd:           {"OpAdd", []int{}},
-	OpNil:           {"OpNil", []int{}},
-	OpFalse:         {"OpFalse", []int{}},
-	OpTrue:          {"OpTrue", []int{}},
-	OpEqual:         {"OpEqual", []int{}},
-	OpNotEqual:      {"OpNotEqual", []int{}},
-	OpNegate:        {"OpNegate", []int{}},
-	OpAbsolute:      {"OpAbsolute", []int{}},
-	OpNot:           {"OpNot", []int{}},
-	OpGreater:       {"OpGreater", []int{}},
-	OpGreaterEqual:  {"OpGreaterEqual", []int{}},
-	OpLess:          {"OpLess", []int{}},
-	OpLessEqual:     {"OpLessEqual", []int{}},
-	OpSubtract:      {"OpSubtract", []int{}},
-	OpMultiply:      {"OpMultiply", []int{}},
-	OpDivide:        {"OpDivide", []int{}},
-	OpExponent:      {"OpExponent", []int{}},
-	OpPop:           {"OpPop", []int{}},
+	OpClosure:        {"OpClosure", []int{2, 1}},
+	OpConstant:       {"OpConstant", []int{2}},
+	OpJump:           {"OpJump", []int{2}},
+	OpJumpNotTruthy:  {"OpJumpNotTruthy", []int{2}},
+	OpGetGlobal:      {"OpGetGlobal", []int{2}},
+	OpSetGlobal:      {"OpSetGlobal", []int{2}},
+	OpGetLocal:       {"OpGetLocal", []int{2}}, // Might be too high, most constants are just 8 bits long
+	OpSetLocal:       {"OpSetLocal", []int{2}},
+	OpArray:          {"OpArray", []int{2}},
+	OpHash:           {"OpHash", []int{2}},
+	OpCall:           {"OpCall", []int{1}},
+	OpGetNative:      {"OpGetNative", []int{1}},
+	OpGetFree:        {"OpGetFree", []int{1}},
+	OpSetIndex:       {"OpSetIndex", []int{}},
+	OpCurrentClosure: {"OpCurrentClosure", []int{}},
+	OpReturnValue:    {"OpReturnValue", []int{}},
+	OpSlice:          {"OpSlice", []int{}},
+	OpIndex:          {"OpIndex", []int{}},
+	OpAdd:            {"OpAdd", []int{}},
+	OpNil:            {"OpNil", []int{}},
+	OpFalse:          {"OpFalse", []int{}},
+	OpTrue:           {"OpTrue", []int{}},
+	OpEqual:          {"OpEqual", []int{}},
+	OpNotEqual:       {"OpNotEqual", []int{}},
+	OpNegate:         {"OpNegate", []int{}},
+	OpAbsolute:       {"OpAbsolute", []int{}},
+	OpNot:            {"OpNot", []int{}},
+	OpGreater:        {"OpGreater", []int{}},
+	OpGreaterEqual:   {"OpGreaterEqual", []int{}},
+	OpLess:           {"OpLess", []int{}},
+	OpLessEqual:      {"OpLessEqual", []int{}},
+	OpSubtract:       {"OpSubtract", []int{}},
+	OpMultiply:       {"OpMultiply", []int{}},
+	OpDivide:         {"OpDivide", []int{}},
+	OpExponent:       {"OpExponent", []int{}},
+	OpPop:            {"OpPop", []int{}},
 }
 
 func Lookup(opcode OpCode) (*Definition, error) {

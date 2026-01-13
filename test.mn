@@ -1,16 +1,16 @@
-fn ackermann(m, n) {
+fn ack(m, n) {
   if (m == 0) {
     return n + 1;
   }
   if (n == 0) {
-    return ackermann(m - 1, 1);
+    return ack(m - 1, 1);
   }
-  return ackermann(m - 1, ackermann(m, n - 1));
+  return ack(m - 1, ack(m, n - 1));
 }
 
 var start = time();
-var result = ackermann(3, 10);
+var result = ack(3, 10);
 var end = time();
 
-print("Result: " + to_string(result));
-print("Time taken: " + to_string(end - start) + " ms");
+print("Result: "+ to_string(result));
+print("Time: "+ to_string(end - start) +" ms");
